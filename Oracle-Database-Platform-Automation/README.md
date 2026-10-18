@@ -6,7 +6,7 @@
 
 **Starting point:** Before this project, I took one Oracle workload through three GoldenGate 26ai migrations: (1) Oracle database upgrade and OS migration with replication, (2) on-premises to OCI cloud migration with replication, and (3) cross-cloud heterogeneous Oracle-to-SQL Server migration with replication. This project rebuilds that path as a repeatable, automated platform and publishes the evidence.
 
-Build a repeatable, automated, secure, observable and recoverable enterprise Oracle database platform using the **DevOps syllabus** as the learning and implementation framework.
+Build a repeatable, automated, secure, observable and recoverable Oracle database platform using the **DevOps syllabus** as the learning and implementation framework.
 
 **Career target:** Database Platform Engineer / Oracle Database Engineer with DevOps and Cloud Automation skills.
 
