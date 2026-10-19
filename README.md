@@ -85,7 +85,7 @@ Full and incremental backup, restore, and point-in-time recovery scenarios. Reus
 
 The former 19c VMs were retired. The new 26ai cluster runs RAC1/RAC2 with RACPDB1 READ WRITE on both nodes. Functional validation includes archiving, SCAN connection distribution, new connections while RAC2 is stopped, and service restoration after restart. The SCAN availability test is user-confirmed; its raw transcript remains to be published. The older 19c incident retains its original, unconfirmed root cause.
 
-Operational code: [RAC health-check Python script](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/scripts/oracle-rac/rac_health_check.py). Revision `2026-10-19.3` was live-tested as grid on October 19 at 10:46 CDT, collecting database and ASM checks with zero critical findings and four warnings. [Health evidence](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/docs/rac26-build-updates/docs/evidence/oracle-rac/2026-10-19-rac26-health-check-v3.md) records alert-history and kernel/RU review items; HugePages remains unconfigured.
+Operational code: [RAC health-check Python script](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/scripts/oracle-rac/rac_health_check.py). Revision `2026-10-19.3` was live-tested as grid on October 19 at 10:46 CDT, collecting database and ASM checks with zero critical findings and four warnings. [Health evidence](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/evidence/oracle-rac/2026-10-19-rac26-health-check-v3.md) records alert-history and kernel/RU review items; HugePages remains unconfigured.
 
 ### Oracle Data Guard — health-check automation
 

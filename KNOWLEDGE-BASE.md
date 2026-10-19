@@ -9,8 +9,10 @@ This is a cross-repository index of technical references, procedures, incidents,
 - [Heterogeneous CDC checkpoints](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/tree/main/docs/checkpoints): dated build checkpoints for Migration 3 (VPN/BGP, Extract, trails, Replicat preparation). End-to-end apply was completed afterward; target-side logs will be published after the rerun.
 
 ## RAC, ASM and Grid Infrastructure
-- [Two-node RAC runbook](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/runbooks/oracle-rac/oracle19c-2node-rac-build-and-troubleshooting.md).
-- [October 2026 node2 investigation](Oracle-Database-Platform-Automation/incident-reports/2026-10-rac-node2-startup-investigation.md): OS access restored; full cluster verification outstanding.
+- [Oracle 26ai two-node RAC runbook](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/runbooks/oracle-rac/oracle26ai-2node-rac-build-runbook.md): build and functional validation completed October 19, 2026; remaining configuration/certification checks tracked.
+- [26ai health evidence and tested script revision](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/evidence/oracle-rac/2026-10-19-rac26-health-check-v3.md): revision 2026-10-19.3, zero critical findings and four review warnings in the supplied grid run.
+- [Two-node 19c RAC runbook](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/runbooks/oracle-rac/oracle19c-2node-rac-build-and-troubleshooting.md).
+- [October 2026 node2 investigation](Oracle-Database-Platform-Automation/incident-reports/2026-10-rac-node2-startup-investigation.md): historical 19c incident; OS access was restored, but final cluster recovery was not established in that retained record. The old VMs were retired; the later 26ai build does not retroactively prove the 19c outcome.
 - [RAC health-check Python script](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/scripts/oracle-rac/rac_health_check.py).
 
 ## Data Guard, RMAN and Oracle DBA

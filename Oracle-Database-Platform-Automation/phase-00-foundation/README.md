@@ -43,10 +43,12 @@ Completed:
 -
 
 ### Evidence
-- Pull request:
-- Branch protection:
-- Budget alerts:
-- Secret scan output:
+- Foundation record and inventory: [phase-00-foundation](./README.md) and [lab inventory](lab-inventory.md).
+- RAC documentation/inventory update: [merged PR #11](https://github.com/omoriwor-commits/oracle-db-platform-automation/pull/11).
+- Tested health script and evidence: [merged multicloud PR #7](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/pull/7).
+- Branch protection: evidence pending.
+- Budget alerts: current OCI/Azure confirmation pending.
+- Secret scan output: retained execution output still to publish; the earlier scan statement above is a reported action, not a complete history audit.
 
 ### Interview story
 -
