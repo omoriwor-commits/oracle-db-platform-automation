@@ -10,7 +10,7 @@
 
 Node 2's first Grid root script failed with `CLSRSC-117` at checkpoint `ROOTCRS_STACK` after its VM froze for about 71 minutes. I reran the root script and it succeeded. Both VMs were running through Hyper-V "snail mode" rather than native VT-x. I identified that host virtualization path and CPU contention as the leading explanation; I subsequently confirmed VT-x with nested paging in both VM logs on October 18, as reported in my October 19 build update.
 
-I subsequently completed Phases 0–9 of the RAC runbook, including DATA/FRA diskgroups and the RAC database software home on both nodes, by October 19. Phases 10–12 remain unrun: no DBCA or database availability acceptance is claimed. The runbook separately flags the reported UEK8/23.26.1 kernel/RU compatibility gap before DBCA.
+I subsequently completed Phases 0–9 of the RAC runbook, including DATA/FRA diskgroups and the RAC database software home on both nodes, by October 19. Later on October 19, I supplied cluster/resource and SQL output confirming database creation: RAC1/RAC2 OPEN, RACPDB1 READ WRITE and the service ONLINE on both nodes. Those initial health checks do not establish SCAN client connectivity or database restart/failover. The runbook still flags the UEK8/23.26.1 compatibility gap.
 
 ## Observed symptoms and evidence
 
@@ -100,9 +100,9 @@ These are evidence sources to archive, not a claim that sanitized files are alre
 
 ## Outcome and lessons
 
-The root-script retry succeeded and Clusterware membership, VIP recovery and SCAN resource relocation were tested. SCAN relocation does not establish database/application failover: no RAC database exists yet. Grid installation completed with the documented hosts-file SCAN/DNS exception; use DNS/GNS for a properly resolved SCAN configuration.
+The root-script retry succeeded and Clusterware membership, VIP recovery and SCAN resource relocation were tested. That earlier SCAN relocation did not establish database/application failover; the RAC database was created afterward. Grid installation completed with the documented hosts-file SCAN/DNS exception; use DNS/GNS for a properly resolved SCAN configuration.
 
-I subsequently started both nodes together after the host correction and observed the VIPs staying on their own nodes. Preserve the reported VT-x evidence and keep checking fresh logs before long-running steps. Resolve the runbook's kernel/RU compatibility gap before DBCA. Keep the runbook Draft until the remaining phases and acceptance tests are complete.
+I subsequently started both nodes together after the host correction and observed the VIPs staying on their own nodes. Preserve the reported VT-x evidence and keep checking fresh logs before long-running steps. Resolve the runbook's kernel/RU compatibility gap before further acceptance/failure testing, even though database creation subsequently succeeded. Keep the runbook Draft until the remaining phases and acceptance tests are complete.
 
 ## Portfolio / LinkedIn context
 
