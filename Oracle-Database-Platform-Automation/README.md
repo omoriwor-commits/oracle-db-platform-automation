@@ -119,7 +119,7 @@ Status legend: **Done** = verified evidence; **In progress** = actively implemen
 
 ## Current RAC checkpoint — October 19, 2026
 
-The two-node Oracle 26ai RAC build and functional validation are complete in the independent VirtualBox lab. RAC1/RAC2 are OPEN and RACPDB1 is READ WRITE on both; archiving, SCAN connection distribution, controlled RAC2 stop/new-connection availability and instance/service restoration have been reported complete. Revision `2026-10-19.3` of the Python health check collected OS, Clusterware, database and ASM results in the supplied 10:46 CDT grid run: zero critical findings and four review warnings. [Health evidence](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/docs/rac26-build-updates/docs/evidence/oracle-rac/2026-10-19-rac26-health-check-v3.md).
+The two-node Oracle 26ai RAC build and functional validation are complete in the independent VirtualBox lab. RAC1/RAC2 are OPEN and RACPDB1 is READ WRITE on both; archiving, SCAN connection distribution, controlled RAC2 stop/new-connection availability and instance/service restoration have been reported complete. Revision `2026-10-19.3` of the Python health check collected OS, Clusterware, database and ASM results in the supplied 10:46 CDT grid run: zero critical findings and four review warnings. [Health evidence](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/evidence/oracle-rac/2026-10-19-rac26-health-check-v3.md).
 
 HugePages, the OL9 UEK8/23.26.1 compatibility gap and remaining runbook Verify items are still open. This checkpoint does not mark the entire automation roadmap complete; Terraform, Ansible and CI/CD remain separately tracked goals.
 

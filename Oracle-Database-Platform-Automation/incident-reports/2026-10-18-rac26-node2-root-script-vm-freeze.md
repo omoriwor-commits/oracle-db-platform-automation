@@ -106,4 +106,4 @@ I subsequently started both nodes together after the host correction and observe
 
 ## Portfolio / LinkedIn context
 
-This is independent lab troubleshooting, not production incident ownership. The [26ai build runbook](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/docs/rac26-build-updates/docs/runbooks/oracle-rac/oracle26ai-2node-rac-build-runbook.md) records the implementation steps; the [controlling roadmap](../ROADMAP.md) separates completed work from planned automation.
+This is independent lab troubleshooting, not production incident ownership. The [26ai build runbook](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/runbooks/oracle-rac/oracle26ai-2node-rac-build-runbook.md) records the implementation steps; the [controlling roadmap](../ROADMAP.md) separates completed work from planned automation.

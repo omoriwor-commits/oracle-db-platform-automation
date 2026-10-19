@@ -106,7 +106,7 @@ Capture runs on the source, while apply is hosted on a separate hub that connect
 
 **Related project:** [Oracle 19c to 26ai GoldenGate migration](https://github.com/omoriwor-commits/enterprise-data-platform-labs/tree/main/migrations/oracle-19c-to-26ai-goldengate)
 
-**Separate, incomplete workflow:** The [OCI Oracle → Azure GoldenGate hub → SQL Server lab](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab) demonstrates a hub architecture and source capture, but the SQL Server target Replicat and end-to-end heterogeneous apply were not yet verified in the published project checkpoints. Do not treat that lab as completed end-to-end CDC.
+**Related completed heterogeneous lab:** I completed the [OCI Oracle → Azure GoldenGate hub → SQL Server lab](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab) and validated end-to-end INSERT, UPDATE and DELETE apply. The published September checkpoints preserve earlier source-capture and target-preparation stages; final sanitized target-side apply output remains to be published during a rerun. Completed implementation and published evidence coverage are tracked separately.
 
 ## Source and documentation intent
 

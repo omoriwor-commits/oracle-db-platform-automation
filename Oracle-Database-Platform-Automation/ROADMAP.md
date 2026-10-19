@@ -21,8 +21,8 @@ rather than repeating it. Pacing is by competency: a stage is complete only when
 | Order | Target week | Work | Phase | Status |
 |---|---|---|---|---|
 | 1 | 1 | Close Phase 0: protect `main`, budget alerts, lab inventory, security/naming/documentation standards (repo rename done Oct 2026) | 0 | In progress |
-| 2 | 1 | Close RAC node 2 incident: re-enable SELinux, verify `crsctl`/`srvctl`, record timestamped output | 10B | In progress |
-| 3 | 2 | Oracle health checks (database, listener, tablespace, RMAN), scheduled, ShellCheck-clean; all work via PRs | 1–2 | Planned |
+| 2 | 1 | Maintain completed 26ai RAC build/functional-validation evidence; resolve compatibility and hardening follow-ups. Preserve the retired 19c incident separately with its unconfirmed root cause | 10B | Build and functional validation complete; follow-ups in progress |
+| 3 | 2 | Extend existing Oracle health checks with scheduling, retained evidence and automated quality checks; all work via PRs | 1–2 | RAC Python 2026-10-19.3 live-tested; scheduling/integration and Data Guard validation tracked separately |
 | 4 | 3–4 | Rebuild GoldenGate 26ai pipeline (OCI Oracle → Azure SQL Server): DML, row-count validation, lag, restart | 11 | Planned |
 | 5 | 5 | Terraform OCI VCN + compute modules; remote state in Object Storage; clean apply/destroy | 4–5 | Planned |
 | 6 | 6 | Ansible configures the fresh server and installs Oracle with no manual steps; idempotent rerun | 6 | Planned |
@@ -229,6 +229,10 @@ The pipeline should provision an ephemeral Oracle Database Free test database lo
 **Focus:** Oracle Grid Infrastructure, ASM, shared storage, Clusterware, RAC, failure simulation, troubleshooting, and automation where practical.
 
 **Prerequisite:** Validate host CPU, RAM, storage, and virtualization capacity before committing to the two-node topology. Adjust VM sizing based on the Oracle version and actual host capacity.
+
+### Current checkpoint — 2026-10-19
+
+Two-node 26ai RAC is built and functional validation is complete: both instances OPEN, RACPDB1 READ WRITE on both, archiving and SCAN connection distribution checked, controlled RAC2 stop/new-connection availability and service restoration confirmed. The [health evidence](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/evidence/oracle-rac/2026-10-19-rac26-health-check-v3.md) separates collected output from user-confirmed results. HugePages, kernel/RU compatibility, further restart/node-failure testing and other runbook Verify items remain open. This does not mark every Phase 10B criterion or the overall automation platform complete.
 
 ### Done when
 - A two-node RAC database runs on ASM-backed shared storage.
