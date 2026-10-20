@@ -12,6 +12,18 @@ Build a repeatable, automated, secure, observable and recoverable Oracle databas
 
 **Method:** Learn → Build → Test → Prove → Document → Publish.
 
+## Portfolio layout
+
+One Oracle Database Platform Automation project spans three linked repositories:
+
+| Repository | Holds |
+|---|---|
+| oracle-db-platform-automation (this repo) | Controlling roadmap, DBA runbooks, operational scripts and incident reports; Terraform, Ansible and CI/CD integration remain planned |
+| [enterprise-data-platform-labs](https://github.com/omoriwor-commits/enterprise-data-platform-labs) | Migrations 1 and 2: Oracle 19c to 26ai, and on-premises 26ai to OCI |
+| [enterprise-multicloud-database-platform-lab](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab) | Migration 3: OCI Oracle 26ai to Azure SQL Server 2022; RAC build runbooks, health checks and validation evidence |
+
+Migration evidence stays in its implementation repository and is linked here rather than duplicated. Completed lab results and remaining evidence-publication work are identified in each repository.
+
 ## Architecture v1
 
 ```text
