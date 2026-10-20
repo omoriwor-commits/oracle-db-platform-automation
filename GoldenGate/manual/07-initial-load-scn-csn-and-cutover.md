@@ -1,10 +1,10 @@
-# Chapter 7 — Initial Load, SCN/CSN Instantiation and Near-Zero-Downtime Migration
+# 07 — Initial Load, SCN/CSN and Cutover
 
 > **Reference scope:** Oracle-documented procedures and illustrative examples. Lab results are recorded separately.
 
-## Learning outcomes
+## Scope and migration criteria
 
-After completing this chapter, learners can distinguish existing-data instantiation from continuous CDC, explain SCN and CSN, select Data Pump or file-based initial load, align baseline and change capture, choose correct Replicat positioning, test row consistency, plan cutover and rollback, and identify invalid shortcut assumptions.
+This page covers existing-data instantiation, continuous CDC, SCN/CSN boundaries, Data Pump and file-based initial load, Replicat positioning, consistency checks, migration cutover and rollback.
 
 ## 1. Initial load and CDC solve different problems
 
@@ -29,7 +29,7 @@ Cutover:                                                 quiesce/switch
 - **Capture registration SCN:** database position relevant to integrated capture registration.
 - **Replicat checkpoint:** durable apply progress; not proof of correct snapshot alignment.
 
-Training reference material records this diagnostic:
+Read-only inspection of the source database:
 
 ```sql
 SHOW CON_NAME;
@@ -54,7 +54,7 @@ Oracle 26ai documents logical and physical methods separately. Validate certific
 
 ### Phase A: prepare the Oracle source
 
-1. Verify certified DB/GoldenGate combination, redo/logging and source privileges (Chapters 3–4).
+1. Verify certified DB/GoldenGate combination, redo/logging and source privileges (03–04).
 2. Establish continuous Extract capture early enough to retain transaction changes during the export.
 3. Prepare source table/schema instantiation information before exporting, as documented by Oracle:
 
@@ -68,7 +68,7 @@ These names are placeholders. Verify the actual multitenant command form, Admin 
 
 ### Phase B: consistent export/import
 
-Use supported Oracle Data Pump export/import settings to generate an appropriately consistent baseline and carry instantiation metadata. Save source PDB, snapshot method, dump metadata, export/import logs, object scope, target remaps and target schema checks. The source recaps do not contain executed expdp/impdp commands or configuration, so **this chapter does not fabricate those values**.
+Use supported Oracle Data Pump export/import settings to generate an appropriately consistent baseline and carry instantiation metadata. Save source PDB, snapshot method, dump metadata, export/import logs, object scope, target remaps and target schema checks. Use actual export/import logs and parameter records to support completed-lab claims.
 
 ### Phase C: Replicat filtering
 
@@ -97,18 +97,18 @@ Official reference: https://docs.oracle.com/en/database/goldengate/core/26/gclir
 
 ## 5. Method B — file-based GoldenGate initial load
 
-reference material provided an Initial Load Extract with RMTHOST/RMTFILE and TABLE statements, plus a corresponding Replicat MAP example. Preserve them as instructor examples, not proof of successful loading.
+A file-based Initial Load Extract can use RMTHOST/RMTFILE and TABLE statements with corresponding Replicat MAP clauses. Validate these examples against the target release and confirm completion using actual load evidence.
 
 ```text
 EXTRACT LOAD1
 USERIDALIAS ggadmin_cdb DOMAIN OracleGoldenGate
 RMTHOST target.example.invalid, PORT 7833
 RMTFILE /approved/target/path/loadfile
-TABLE PDB1.GGTRAINING1.DEPT11;
-TABLE PDB1.GGTRAINING1.EMP11;
+TABLE PDB1.APP_SRC.DEPARTMENTS;
+TABLE PDB1.APP_SRC.EMPLOYEES;
 ```
 
-**Caution:** sample paths, port, remote-file method and credentials require release-specific verification. The reference material statement that MSA initial load involves no Distribution Service is not universal: Oracle's precise-instantiation procedure also documents an initial-load trail moved through Distribution Paths. The supported topology determines the method.
+**Caution:** sample paths, port, remote-file method and credentials require release-specific verification. Microservices initial-load topologies differ: Oracle also documents an initial-load trail transported through Distribution Paths. The supported topology determines the method.
 
 **Procedure logic, not a ready-to-run script:**
 
@@ -184,28 +184,10 @@ Three source tables have snapshot boundaries at hypothetical SCNs 900, 950 and 1
 
 ## 10. Real-lab evidence worksheet
 
-```text
-Migration date / source and target Oracle versions:
-GoldenGate exact release and deployment:
-Instantiation method:
-Source Extract registration and capture start position:
-Consistent snapshot/export boundaries, including per-table CSNs:
-Data Pump or initial-load process logs:
-Target baseline verification, counts/checksums:
-Replicat instantiation/positioning configuration:
-Final source transaction and capture checkpoint:
-Distribution/Receiver and target apply checkpoints:
-Conflict/error reports and resolution:
-Approved go/no-go and application switch time:
-First target production write and measured downtime:
-Rollback cutoff and target-only change strategy:
-Evidence reference and owner:
-Lab validation: NOT EXECUTED IN THIS CHAPTER
-```
 
-## Provenance and Oracle references
+## Oracle references and validation requirements
 
-**Original course:** reference material GoldenGate Hub/file-based initial load, reference material basic SCN/AFTERCSN migration sketch. Both are preserved separately. They are **not** evidence of a complete migration or a safe standalone cutover procedure.
+**Implementation requirement:** File-based initial load and SCN-based cutover require a documented consistent snapshot, supported trail topology, position/instantiation metadata and source-target reconciliation.
 
 **Oracle 26ai guidance:**
 
@@ -216,4 +198,4 @@ Lab validation: NOT EXECUTED IN THIS CHAPTER
 - https://docs.oracle.com/en/database/goldengate/core/26/gclir/set-instantiation-csn.html
 - https://docs.oracle.com/en/database/goldengate/core/26/gclir/start-replicat.html
 
-**Next:** Chapter 8 — GoldenGate Monitoring, Lag, Checkpoints, Trail Retention and Incident Recovery.
+**Next:** [08 — Monitoring, Checkpoints and Recovery](08-monitoring-lag-checkpoints-and-recovery.md)

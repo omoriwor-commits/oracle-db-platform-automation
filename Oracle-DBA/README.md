@@ -1,32 +1,5 @@
-# Oracle DBA Lab Projects
+# Oracle DBA
 
-This folder is reserved for Oracle Database administration notes, scripts, and smaller hands-on exercises.
+Oracle database administration scripts and records, starting with RMAN backup and recovery (full and incremental backup, restore, and point-in-time recovery). Sanitized scripts and output are added here as each scenario is rerun.
 
-## Planned Organization
-
-```text
-Oracle-DBA/
-├── README.md
-├── administration/
-├── multitenant/
-├── backup-recovery/
-├── performance/
-├── security/
-├── monitoring/
-└── scripts/
-```
-
-## Focus Areas
-
-- instance and database administration
-- CDB/PDB management
-- users, roles, and privileges
-- tablespace and storage management
-- RMAN backup and recovery
-- Data Pump
-- Data Guard
-- performance diagnostics
-- monitoring and health checks
-- DBA automation
-
-Portfolio-scale database engineering work is maintained in the separate enterprise database lab repositories.
+- [Oracle DBA runbooks](runbooks/README.md): crsctl, OCR/OLR, RMAN automation, health checks, SQL Tuning Advisor

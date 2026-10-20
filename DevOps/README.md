@@ -35,4 +35,4 @@ These files are reusable references for:
 - safe key handling
 - Oracle Linux / OCI development workflows
 
-More complete CI/CD and container work is documented in the separate [Nginx DevOps Assignment](https://github.com/omoriwor-commits/nginx-devops-assignment).
+More complete CI/CD and container work is documented in the separate [Nginx DevOps Project](https://github.com/omoriwor-commits/nginx-devops-project).

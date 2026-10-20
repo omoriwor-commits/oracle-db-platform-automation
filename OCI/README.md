@@ -1,28 +1,13 @@
-# OCI Lab Projects
+# Oracle Cloud Infrastructure — Database and Network Engineering
 
-This folder is reserved for Oracle Cloud Infrastructure learning notes, configuration references, and smaller OCI exercises.
+OCI architecture, networking and database migration projects.
 
-## Planned Organization
+## Implementation projects
 
-```text
-OCI/
-├── README.md
-├── iam/
-├── networking/
-├── compute/
-├── storage/
-├── database/
-└── automation/
-```
+- [Oracle 26ai → OCI Migration with GoldenGate 26ai](https://github.com/omoriwor-commits/enterprise-data-platform-labs/tree/main/migrations/oracle-26ai-to-oci-goldengate) — local Oracle 26ai on Oracle Linux 9.8 to a self-managed Oracle 26ai database on an OCI Compute VM.
+- [Oracle 19c → 26ai Migration with GoldenGate 26ai (OL 7.9 → OL 9.8)](https://github.com/omoriwor-commits/enterprise-data-platform-labs/tree/main/migrations/oracle-19c-to-26ai-goldengate) — separate database-version and operating-system migration.
+- [Enterprise Multicloud Database Platform](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab) — OCI–Azure connectivity, GoldenGate configuration and database platform investigations.
 
-## Focus Areas
+## Operational references
 
-- IAM and identity domains
-- VCNs, subnets, routing, NSGs, and security lists
-- Compute instances
-- Block/Object Storage
-- Oracle Database services
-- OCI CLI and automation
-- Terraform for OCI
-
-For the larger multi-cloud implementation, see the separate [Enterprise Multi-Cloud Database Platform Lab](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab).
+- [OCI Engineering Field Guide](engineering/README.md) — VCNs, subnets, routing, NAT, restricted SSH and Compute access.

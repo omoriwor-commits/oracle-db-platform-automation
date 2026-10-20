@@ -1,4 +1,4 @@
-# Chapter 10 — Security, Credentials and Classic–Microservices Interoperability
+# 10 — Security and Interoperability
 
 > **Reference scope:** Oracle-documented security procedures and illustrative configurations; executed tests are tracked separately.
 
@@ -19,7 +19,7 @@ Distinguish operating-system, GoldenGate service, database and transport identit
 
 Do not conflate these identities, grant blanket DBA privileges, or place passwords into a published command or shell transcript.
 
-### Database-version distinction (essential for historical 19c→26ai labs)
+### Database-version-specific privileges
 
 **GoldenGate 26ai software does not imply Oracle Database 26ai.** Oracle AI Database 26ai introduces database roles **OGG_CAPTURE** and **OGG_APPLY**. Oracle says DBMS_GOLDENGATE_AUTH.GRANT_ADMIN_PRIVILEGE is disabled in the 26ai database and raises a warning rather than granting privileges. Older Oracle database versions use their own privilege-granting mechanism. A command valid against Oracle Database 19c is not necessarily valid against Oracle AI Database 26ai.
 
@@ -48,7 +48,7 @@ Vendor: https://docs.oracle.com/en/database/goldengate/core/26/coredoc/extract-a
 
 ## 3. Never copy or directly modify a GoldenGate credential store
 
-The Day 4 recap proposes restoring Service Manager access by replacing wallet files from a dummy deployment. **Reject this as an operational procedure.** Oracle's 26ai authentication documentation explicitly says the credential store is read-only for direct manipulation, including copying it from one deployment to another. Manage credentials through supported Admin Client, REST or WebUI actions. Forgotten-admin-password recovery must follow a vendor-supported process specific to the actual installation.
+The an unsafe wallet-copy workaround proposes restoring Service Manager access by replacing wallet files from a dummy deployment. **Reject this as an operational procedure.** Oracle's 26ai authentication documentation explicitly says the credential store is read-only for direct manipulation, including copying it from one deployment to another. Manage credentials through supported Admin Client, REST or WebUI actions. Forgotten-admin-password recovery must follow a vendor-supported process specific to the actual installation.
 
 Protect credential wallets, TLS private keys, database passwords, populated response files and backups from general access. Rotate credentials promptly when leakage is suspected; deleting a password from the current repository commit does not remove prior Git history.
 
@@ -114,7 +114,7 @@ Vendor: https://docs.oracle.com/en/database/goldengate/core/26/coredoc/reference
 
 ## 7. Classic to MA — plan around the security limitation
 
-Day 15 presents a data pump with remote target Receiver and RMTTRAIL. The 26ai interoperability guide clarifies direct Classic→MA requires an unsecured MA deployment and exposed Receiver ingress port. Do not assume this is acceptable for production merely because it was shown in class.
+A legacy Classic data pump can target an MA Receiver only under Oracle's documented mixed-mode conditions. The 26ai interoperability guide identifies an unsecured MA deployment and Receiver ingress requirement; this arrangement requires explicit security review and is not a default production recommendation.
 
 Oracle offers a **Classic-to-Microservices Migration Utility** for supported older Classic releases. Migration requires a prepared and running MA deployment, compatible source build, shutdown of Classic services, checkpoint/trail preservation and migration planning. Migration utility work is change-controlled; no example in this chapter constitutes evidence of an executed conversion.
 
@@ -132,7 +132,7 @@ Vendor: https://docs.oracle.com/en/database/goldengate/core/26/coredoc/migration
 | Old trails not delivered | Checkpoints, source and target sequence/RBA, path/Collector logs | Reposition NOW or delete trails |
 | Secret committed to Git | Revoke and rotate, investigate exposure and Git history | Deleting only the newest file version |
 
-## 9. Teaching exercises
+## 9. Security validation scenarios
 
 **A — Identity boundaries:** List separate OS, GoldenGate administration, source capture, target apply and transport users; specify the minimum access each needs.
 
@@ -140,9 +140,9 @@ Vendor: https://docs.oracle.com/en/database/goldengate/core/26/coredoc/migration
 
 **C — Mixed architecture choice:** A secured 26ai target must receive from a legacy Classic pump. Explain why direct Classic→secured MA is not supported in Oracle's cited guide, and propose a vendor-supported staged alternative.
 
-**D — Wallet incident:** Explain why copying a training wallet to restore credentials is prohibited and how to escalate to the documented vendor recovery path.
+**D — Credential recovery:** Investigate the supported recovery procedure for an unavailable administrator credential. Never transplant wallet files across deployments.
 
-## 10. Evidence worksheet and quality status
+## 10. Security evidence worksheet
 
 ~~~text
 Date / observer:
@@ -161,7 +161,7 @@ Observed errors and remediation:
 Status: Vendor reference / reference-derived / lab verified
 ~~~
 
-**Source classification:** Days 4/7/15: instructor material; Oracle 26ai documentation: vendor support and restrictions; synthetic identifiers: examples; **actual lab validation: pending**.
+**Verification:** Oracle 26ai documentation establishes documented support and restrictions. Example identifiers are placeholders; lab validation is not recorded here.
 
 ## Oracle references
 
@@ -172,4 +172,4 @@ Status: Vendor reference / reference-derived / lab verified
 - https://docs.oracle.com/en/database/goldengate/core/26/coredoc/reference-connecting-classic-ma.html
 - https://docs.oracle.com/en/database/goldengate/core/26/coredoc/migration-utility-migrate-classic-ma.html
 
-**Next:** Chapter 11 — GoldenGate Performance Tuning, High Availability and Operational Automation.
+**Next:** [11 — Performance, High Availability and Automation](11-performance-high-availability-and-automation.md)

@@ -1,8 +1,8 @@
-# Chapter 4 — Integrated Extract and Source Trails
+# 04 — Integrated Extract and Source Trails
 
 **Scope:** Oracle GoldenGate 26ai Microservices and Oracle source databases. Identifiers (`EXTLAB`, `gg_source`, `ea`, `HR.EMPLOYEES`) are placeholders. See the separately documented [Oracle 19c → 26ai migration project](https://github.com/omoriwor-commits/enterprise-data-platform-labs/tree/main/migrations/oracle-19c-to-26ai-goldengate) for recorded `EXT19C` remote integrated capture and `REP26AI` apply.
 
-**Prerequisite:** [Chapter 3 — Oracle Database Preparation](chapter-03-oracle-database-preparation.md), including archived redo, supplemental logging, appropriate source privileges, and an approved capture/initial-load boundary.
+**Prerequisite:** [03 — Oracle Database Preparation](03-oracle-database-preparation.md), including archived redo, supplemental logging, appropriate source privileges, and an approved capture/initial-load boundary.
 
 ## 1. Capture architecture
 
@@ -10,8 +10,8 @@ Integrated Extract interacts with Oracle's integrated capture infrastructure to 
 
 ```text
 Oracle redo -> integrated database capture -> Integrated Extract
-           -> local trail (ea#########) -> Distribution Path (Chapter 5)
-           -> target trail -> Replicat (Chapter 6)
+           -> local trail (ea#########) -> Distribution Path (05)
+           -> target trail -> Replicat (06)
 ```
 
 A RUNNING Extract does not establish that transport completed or target data is correct. Registration, trail writes, transport delivery, and target apply require distinct evidence.
@@ -22,7 +22,7 @@ A RUNNING Extract does not establish that transport completed or target data is 
 |---|---|---|
 | Supported versions | Oracle certification for source database and exact GoldenGate release | Capture support and commands vary |
 | Database scope | `SHOW CON_NAME`, DB alias/service, `DBLOGIN` | Wrong CDB/PDB or mining database |
-| Redo/logging | Chapter 3 checks and `INFO TRANDATA` | Incomplete logical changes or lost redo |
+| Redo/logging | 03 checks and `INFO TRANDATA` | Incomplete logical changes or lost redo |
 | Capture privileges | Version-specific capture roles/procedures | Blanket DBA privileges are not appropriate |
 | Deployment | Secured endpoint and authorized operator | Wrong deployment changes |
 | Table selection | Approved `TABLE` list and exclusions | Capturing unintended objects |
@@ -186,4 +186,4 @@ Source capture outcome: VERIFIED / FAILED / NOT TESTED
 - [INFO EXTTRAIL](https://docs.oracle.com/en/database/goldengate/core/26/gclir/info-exttrail.html)
 - [Deployment Directories](https://docs.oracle.com/en/database/goldengate/core/26/coredoc/deployment-directories.html)
 
-**Next:** [Chapter 5 — Distribution and Receiver Services](chapter-05-distribution-and-receiver-services.md).
+**Next:** [05 — Distribution and Receiver Services](05-distribution-and-receiver-services.md).

@@ -1,26 +1,5 @@
-# Azure Lab Projects
+# Azure
 
-This folder is reserved for Microsoft Azure learning notes and smaller cloud exercises.
+Azure database engineering for Migration 3 (Oracle 26ai on OCI → Azure SQL Server 2022): VNet design, site-to-site IPsec VPN with BGP to OCI, the GoldenGate 26ai hub, and SQL Server 2022.
 
-## Planned Organization
-
-```text
-Azure/
-├── README.md
-├── networking/
-├── compute/
-├── identity/
-├── storage/
-└── database/
-```
-
-## Focus Areas
-
-- Azure networking
-- virtual machines
-- identity and access
-- private connectivity
-- SQL Server platform hosting
-- hybrid and multi-cloud integration
-
-The active Azure/OCI database integration work is documented in the [Enterprise Multi-Cloud Database Platform Lab](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab).
+Full implementation: [Enterprise Multi-Cloud Database Platform Lab](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab)

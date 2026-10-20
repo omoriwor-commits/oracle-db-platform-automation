@@ -1,21 +1,21 @@
-# Chapter 9 — Parameter Files, Filtering, Column Mapping, Collision Handling and Table Onboarding
+# 09 — Parameters, Filtering, Mapping and Collisions
 
 > **Reference scope:** Oracle-documented procedures and illustrative examples. Lab results are recorded separately.
 >
 > **Reference scope:** Oracle-documented procedures and illustrative examples. Lab results are recorded separately.
 
-## Objectives
+## Scope and configuration controls
 
-Readers should be able to locate and back up a process parameter file; explain directive scope; configure a safe row filter; map a renamed column; distinguish expected from unexpected collisions; and bring a new table into an existing capture/apply pipeline without transaction gaps.
+This page covers parameter-file management, directive scope, row filtering, column mapping, collision handling and safe table onboarding without transaction gaps.
 
 ## 1. What is a parameter file?
 
 A GoldenGate process parameter file describes what a specific Extract or Replicat should capture/apply and how. A separate GLOBALS configuration can affect broader environment-level settings. In Microservices deployments, parameter/configuration files are normally associated with a deployment runtime home, rather than the installation binary home.
 
-reference material identified a site-specific location resembling:
+A commonly used deployment configuration location resembles:
 `$DEPLOYMENT_HOME/etc/conf/ogg/`.
 
-**Verify your installation's actual home and use supported administration interfaces.** The training directory is a location example, not a universal filesystem path.
+**Verify your installation's actual home and use supported administration interfaces.** Deployment directory layout varies; verify the actual runtime configuration home.
 
 ### Safe change-control sequence
 
@@ -32,7 +32,7 @@ reference material identified a site-specific location resembling:
 
 ## 2. Understand scoped directives
 
-From reference material:
+Relevant DML-selection directives include:
 
 ```text
 GETINSERTS
@@ -47,13 +47,13 @@ IGNORETRUNCATES
 
 These govern whether corresponding operations are selected for extraction or replication, subject to their exact documented placement and supported process types.
 
-**Teaching example:** If a broad IGNOREUPDATES directive applies before two TABLE statements, its effect may be broader than the DBA intended. Do not assume a directive is always limited to the nearest subsequent line. Identify the documentation-defined scope, defaults and reset/opposing directives.
+**Configuration example:** If a broad IGNOREUPDATES directive applies before two TABLE statements, its effect may be broader than the DBA intended. Do not assume a directive is always limited to the nearest subsequent line. Identify the documentation-defined scope, defaults and reset/opposing directives.
 
 Always confirm DDL, TRUNCATE and DML support individually. A claim that GETTRUNCATES is universally enabled would be unsafe.
 
 ## 3. WHERE and FILTER — selective replication
 
-reference material discusses WHERE for relatively simple selection conditions and FILTER for more complex row/operation logic. Both require testing with before and after images as appropriate.
+WHERE supports simple row selection; FILTER supports more advanced conditions subject to the relevant process and image semantics. Both require testing with before and after images as appropriate.
 
 **Conceptual filtering example** (exact release-specific expressions and column case need validation):
 
@@ -61,9 +61,9 @@ reference material discusses WHERE for relatively simple selection conditions an
 TABLE APP_SRC.ORDERS, WHERE (REGION = 'US');
 ```
 
-This is an instructor-style illustration, **not** an endorsed general rule for a live application. An UPDATE that changes whether a row meets a WHERE condition can produce different results from naïvely filtering one after-image. Understand which DML and image is evaluated.
+This is an configuration illustration, **not** an endorsed general rule for a live application. An UPDATE that changes whether a row meets a WHERE condition can produce different results from naïvely filtering one after-image. Understand which DML and image is evaluated.
 
-The training also presents FILTER with IGNORE INSERT and string functions. Preserve the original as a reference but do not treat that classroom clause as tested 26ai syntax. Verify operator spelling, function signatures and specific operation behavior against the current Oracle parameter manual.
+Validate FILTER functions, operator spelling, and operation-specific semantics against the installed GoldenGate release before using them. Verify operator spelling, function signatures and specific operation behavior against the current Oracle parameter manual.
 
 ### Filter acceptance test
 
@@ -74,11 +74,11 @@ For a controlled source/target lab, create two rows (one matching the filter, on
 - DELETE of both matching and nonmatching rows.
 - Restart/recovery and source-target reconciliation according to **intended** filter semantics.
 
-Check Extract/Replicat reports, not just final row count. Use separate transport-filter checks if Chapter 5 path filters are configured.
+Check Extract/Replicat reports, not just final row count. Use separate transport-filter checks if 05 path filters are configured.
 
 ## 4. COLMAP and USEDEFAULTS
 
-reference material introduces `COLMAP` for columns whose source/target names differ, and `USEDEFAULTS` for same-name columns.
+Use `COLMAP` to define target-to-source column mappings and `USEDEFAULTS` to map compatible same-name columns.
 
 ```text
 MAP APP_SRC.CUSTOMERS,
@@ -97,9 +97,9 @@ Oracle describes `COLMAP (USEDEFAULTS, target_column = source_expression)` and s
 
 Reference: [Oracle 26ai Parameters and Functions Reference (PDF)](https://docs.oracle.com/en/database/goldengate/core/26/reference/reference-oracle-goldengate.pdf).
 
-## 5. Collision handling — correction to reference material
+## 5. Collision handling and apply correctness
 
-The instructor's reference material recap states that HANDLECOLLISIONS is enabled by default. **That is incorrect for the Oracle 26ai documented parameter: the default is NOHANDLECOLLISIONS.**
+**Oracle GoldenGate 26ai defaults to NOHANDLECOLLISIONS.**
 
 Oracle's collision feature can attempt to handle duplicate INSERT, missing UPDATE and missing DELETE situations associated with some initial-load workflows. It is not a general data-repair mechanism and may hide divergence. Actual behavior and compatibility depend on process type and version.
 
@@ -179,9 +179,9 @@ Example process and alias names are invented. These commands do not alter replic
 | Added table contains source rows but target empty | Missing initial load or skipped start position | Moving checkpoint to NOW |
 | Different target values | Mapping functions, defaults, value conversion, constraints | Declaring success from STATS counters |
 
-## 9. Teaching labs
+## 9. Validation labs
 
-**Lab A — parameter scoping:** Provide two TABLE statements and several IGNORE/GET directives. Ask the learner to trace which DML are captured and identify where an opposing directive must be placed. Check against release-specific documentation.
+**Lab A — parameter scoping:** Provide two TABLE statements and several IGNORE/GET directives. Trace which DML are captured and identify where an opposing directive must be placed. Check against release-specific documentation.
 
 **Lab B — column mapping:** Source has FULL_NAME; target has CUSTOMER_NAME. Use COLMAP to map a controlled row. Validate NULL, multibyte text, updates and a DELETE.
 
@@ -191,28 +191,12 @@ Example process and alias names are invented. These commands do not alter replic
 
 ## 10. Evidence checklist
 
-```text
-Change ticket / lab date:
-Oracle and GoldenGate exact versions:
-Source/target deployment and object names:
-Previous Extract and Replicat parameter SHA/diff:
-New directives and documented default/scope:
-Supplemental logging and object definitions:
-Source/target baseline status:
-Instantiated table CSN or equivalent consistent method:
-Approved process stop/start and checkpoint positions:
-INSERT/UPDATE/DELETE expected and observed results:
-Target row counts/checksum:
-Errors encountered and documented resolution:
-Rollback plan and result:
-Proof: vendor only / instructor only / lab executed with logs
-```
 
-## Sources and limits
+## Verification notes
 
 - **reference-derived:** Days 11–12 and 16–17 concepts and original examples.
 - **Vendor-verified correction:** NOHANDLECOLLISIONS default; scoped collision logic; per-table onboarding assumptions; COLMAP syntax.
-- **Reconstructed:** lab process names, table names, mapping examples and classroom exercises.
+- **Examples:** Process identifiers, schema/table names and lab scenarios are illustrative.
 - **Not tested here:** actual source/target configuration, collision experiments, new-table capture or successful mappings.
 
 ### Oracle references
@@ -223,4 +207,4 @@ Proof: vendor only / instructor only / lab executed with logs
 - [Parameters and Functions Reference](https://docs.oracle.com/en/database/goldengate/core/26/reference/reference-oracle-goldengate.pdf)
 - [Before Adding Extract and Replicat](https://docs.oracle.com/en/database/goldengate/core/26/coredoc/configure-ogg-adding-extract-and-replicat.html)
 
-**Next: Chapter 10 — Security, Credentials and Classic–Microservices Interoperability.**
+**Next:** [10 — Security and Interoperability](10-security-credentials-and-interoperability.md)

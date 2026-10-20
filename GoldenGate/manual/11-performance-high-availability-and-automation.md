@@ -1,4 +1,4 @@
-# Chapter 11 — Performance Tuning, High Availability and Operational Automation
+# 11 — Performance, High Availability and Automation
 
 > **Reference scope:** Oracle-documented operations and illustrative tuning examples; measured results require separate evidence.
 
@@ -125,9 +125,9 @@ GoldenGate Administration Service supports Managed Process Profiles for Extract 
 4. Has the previous trail/recovery checkpoint been preserved?
 5. Is the deployment under XAG management?
 
-Oracle warns against setting the 'Critical to deployment health' managed-process profile attribute when using XAG, because one unavailable Extract/Replicat can prevent XAG startup for related GoldenGate resources. This is important when teaching availability settings.
+Oracle warns against setting 'Critical to deployment health' on managed-process profiles under XAG: an unavailable Extract or Replicat can prevent related XAG-managed resources from starting.
 
-**Do not copy Day 12's example (five restarts, sixty seconds) as a universal Oracle recommendation.** It was classroom material, not a tested availability policy.
+**Restart policy values require testing.** A fixed attempt count and delay should be chosen for the environment, failure type and alerting policy rather than copied into every deployment.
 
 Reference: https://docs.oracle.com/en/database/goldengate/core/26/coredoc/extract-managed-processes.html
 
@@ -159,7 +159,7 @@ Every monitoring cycle:
 
 For scripts, use secure secrets management or restricted authentication profiles. Never embed an actual password, wallet blob or long-lived token in a public GitHub repository. Restrict read-only monitoring accounts appropriately.
 
-## 9. Capacity and resilience exercise
+## 9. Capacity and resilience planning
 
 **Hypothetical case:** the source generates 40 GB of relevant trail data per hour. The downstream target can be unavailable for 6 hours. What baseline retention volume is needed?
 
@@ -180,25 +180,8 @@ For scripts, use secure secrets management or restricted authentication profiles
 
 ## 11. Performance lab — reusable evidence worksheet
 
-```text
-Change/lab date and operator:
-GoldenGate exact release/source/target database versions:
-Deployment mode: manual / systemd / XAG:
-Test workload and transaction/key dependency profile:
-Source commit rate; source/target hardware:
-Before: Extract lag / path lag / Replicat lag / heartbeat lag:
-Before: transactions/sec, CPU, I/O, locks, inbound apply stats:
-Baseline row-count/checksum and error reports:
-Change requested, parameter and Oracle reference:
-Approval, rollback and restart/dependency plan:
-After: same metrics in matched workload interval:
-After: target reconciliation, error and checkpoint verification:
-Outcome: improved / unchanged / regressed / inconclusive:
-Saved sanitized evidence files:
-Chapter lab status: NOT EXECUTED HERE
-```
 
-## 12. Teaching assessment
+## 12. Operational acceptance criteria
 
 1. Why does increasing parallelism not always improve apply performance?
 2. What is the difference between end-to-end latency and INFO ALL lag?
@@ -208,12 +191,10 @@ Chapter lab status: NOT EXECUTED HERE
 
 **Answer key:** workload dependencies, database saturation and direct apply may cap throughput; checkpoint lag is not a measured end-to-end latency; Clusterware/XAG owns resource lifecycle and dependencies; unconsumed trails may be deleted; controlled before/after workload, lag/throughput, error-free recovery and data reconciliation are required.
 
-## Provenance and source status
+## Verification status
 
 - **Technical background:** general Microservices roles, lag monitoring, autostart/restart discussions.
 - **Oracle-verified reference:** integrated apply options, diagnostics, managed process profiles, XAG restrictions, automated maintenance and heartbeat concepts.
-- **Reconstructed:** capacity scenario, all example process names, test exercises and runbook decision trees.
-- **Not verified here:** any new performance improvement, failover, automated workflow or real measured throughput.
 
 ## Official documentation
 
@@ -226,4 +207,4 @@ Chapter lab status: NOT EXECUTED HERE
 - https://docs.oracle.com/en/database/goldengate/core/26/coredoc/automate-maintenance-tasks-1.html
 - https://docs.oracle.com/en/database/goldengate/core/26/coredoc/monitor-monitor-lag.html
 
-**Next and final core chapter: Chapter 12 — Full GoldenGate Implementation Lab and Operational Acceptance.**
+**Next:** [12 — End-to-End Implementation Lab](12-end-to-end-implementation-lab.md)

@@ -1,10 +1,10 @@
-# Chapter 12 — GoldenGate Implementation and Operational Acceptance
+# 12 — End-to-End Implementation Lab
 
-> **Final core chapter · Status: lab design / NOT EXECUTED.** This chapter brings together Chapters 1–11 into a reproducible Oracle-to-Oracle Microservices teaching project. It does **not** claim that the sample installation, SQL, processes or validation results were executed. Original Days 1–17 notes remain unchanged in Drive. Oracle release-specific prerequisites and instructions are linked below.
+**Scope:** End-to-end GoldenGate 26ai Oracle-to-Oracle implementation plan. Configuration examples are illustrative; deployment, recovery and DML results will be recorded when the lab is executed.
 
 ## Scope and acceptance criteria
 
-By completion, a student should be able to design an Oracle GoldenGate topology, deploy and secure two Microservices environments, prepare a source and target database, configure Integrated Extract and Replicat, transport changes, establish a consistent initial load, validate committed INSERT/UPDATE/DELETE transactions, troubleshoot a controlled failure, and archive reproducible evidence.
+This implementation plan covers secure Microservices deployment, Oracle database preparation, Integrated Extract and Replicat, trail delivery, consistent initial load, committed DML validation, controlled failure recovery and reproducible evidence.
 
 **Pass only with evidence:** correct version/platform support, repeatable deployment, successful initial baseline, successful target DML checks at *each* stage, stable restart/recovery checkpoints, and no unexplained differences. `RUNNING` status is necessary but insufficient.
 
@@ -26,7 +26,7 @@ Oracle target database / PDBTGT (example)
 
 This represents two **separate GoldenGate deployments** in a disposable lab. The source and target database releases must each be certified with the selected GoldenGate build. The example database names, users, addresses, process names, trail prefixes, paths and credentials are fictional.
 
-**Historical project separation:** Your independently documented Oracle 19c→26ai lab describes remote integrated capture via EXT19C and apply via REP26AI; this planned lab is not its recovered original transcript. The OCI→Azure heterogenous lab is also a different project with incomplete end-to-end SQL Server apply evidence.
+**Related work:** My completed Oracle 19c → 26ai migration used remote integrated capture (EXT19C) and Integrated Replicat (REP26AI). My OCI Oracle → Azure SQL Server project is documented separately in the enterprise-multicloud-database-platform-lab repository.
 
 ## 2. Preflight worksheet (before changes)
 
@@ -71,7 +71,7 @@ Run in an approved container with sufficient rights. Preserve *real* output as r
 
 ### Gate A — Install and deploy GoldenGate
 
-Using [Chapter 2](chapter-02-installation-and-microservices-deployment.md), install the certified software and configure Service Manager, a source deployment and a target deployment with OGGCA. Use independently secured administrative access, valid TLS, isolated runtime paths and approved startup modes.
+Using [02](02-installation-and-microservices-deployment.md), install the certified software and configure Service Manager, a source deployment and a target deployment with OGGCA. Use independently secured administrative access, valid TLS, isolated runtime paths and approved startup modes.
 
 **Examples only** (the software package/response files must be present and verified):
 
@@ -86,7 +86,7 @@ cd "$OGG_HOME/bin"
 
 ### Gate B — Prepare the databases
 
-Use [Chapter 3](chapter-03-oracle-database-preparation.md). Verify source redo/archive strategy, least-privilege capture account, table keys and supplemental logging. Configure a separate target apply account and compatible schema/table definitions. GoldenGate 26ai software may connect to **Oracle 19c or 26ai databases** subject to certification; their database privilege procedures differ. Do not assume blanket DBA grants or reuse one release's privilege script.
+Use [03](03-oracle-database-preparation.md). Verify source redo/archive strategy, least-privilege capture account, table keys and supplemental logging. Configure a separate target apply account and compatible schema/table definitions. GoldenGate 26ai software may connect to **Oracle 19c or 26ai databases** subject to certification; their database privilege procedures differ. Do not assume blanket DBA grants or reuse one release's privilege script.
 
 Illustrative source-admin command choices after approved database login:
 
@@ -102,7 +102,7 @@ Names are placeholders, syntax must match the actual multitenant configuration. 
 
 ### Gate C — Initial data and precise instantiation strategy
 
-**This is the primary correctness gate.** Use [Chapter 7](chapter-07-initial-load-scn-csn-and-cutover.md). Decide *before starting apply* whether the lab baseline is an intentionally empty, quiesced target or a nonempty source table needing a consistent copy.
+**This is the primary correctness gate.** Use [07](07-initial-load-scn-csn-and-cutover.md). Decide *before starting apply* whether the lab baseline is an intentionally empty, quiesced target or a nonempty source table needing a consistent copy.
 
 For a nonempty Oracle source, use an Oracle-supported instantiation procedure such as Data Pump automatic per-table CSN instantiation: establish capture first, set PREPARECSN as documented, export/import the consistent source baseline, verify target instantiation metadata and only then choose Replicat filtering/starting position. Do not use a random `CURRENT_SCN` as the baseline boundary or start Replicat at NOW to bypass backlog.
 
@@ -112,7 +112,7 @@ Oracle references: [Precise instantiation](https://docs.oracle.com/en/database/g
 
 ### Gate D — Integrated Extract and source trail
 
-Use [Chapter 4](chapter-04-integrated-extract-and-source-trails.md) and Oracle's exact instructions to register integrated capture before creating its Extract. Confirm the approved start boundary.
+Use [04](04-integrated-extract-and-source-trails.md) and Oracle's exact instructions to register integrated capture before creating its Extract. Confirm the approved start boundary.
 
 **Illustrative Admin Client structure, not ready-to-run production commands:**
 
@@ -129,13 +129,13 @@ ADD EXTTRAIL ea, EXTRACT EXTLAB, MEGABYTES 200
 
 ### Gate E — Transport to target
 
-Use [Chapter 5](chapter-05-distribution-and-receiver-services.md) to add a source Distribution Service Path to the secured target Receiver Service. Confirm source trail `ea`, destination trail `eb`, TLS/certificate trust, path checkpoint and physical target trail creation. A target-initiated Receiver Path is an alternative when topology requires it.
+Use [05](05-distribution-and-receiver-services.md) to add a source Distribution Service Path to the secured target Receiver Service. Confirm source trail `ea`, destination trail `eb`, TLS/certificate trust, path checkpoint and physical target trail creation. A target-initiated Receiver Path is an alternative when topology requires it.
 
 **Gate E pass:** test record leaves source trail, path reports movement, target trail sequence advances and the Receiver reports no unresolved errors. Transport alone does *not* prove apply.
 
 ### Gate F — Integrated Replicat and checkpoint table
 
-Use [Chapter 6](chapter-06-integrated-replicat-and-validation.md). Confirm target DB alias, target table, valid instantiation boundary, Replicat type and checkpoint table. Oracle's Microservices Replicat procedure identifies DB Connections, supplemental logging, checkpoint table and heartbeat as setup prerequisites.
+Use [06](06-integrated-replicat-and-validation.md). Confirm target DB alias, target table, valid instantiation boundary, Replicat type and checkpoint table. Oracle's Microservices Replicat procedure identifies DB Connections, supplemental logging, checkpoint table and heartbeat as setup prerequisites.
 
 **Illustrative Admin Client structure:**
 
@@ -224,11 +224,11 @@ LAG REPLICAT REPLAB
 STATS REPLICAT REPLAB
 ```
 
-Consult [Chapter 8](chapter-08-monitoring-lag-checkpoints-and-recovery.md) before any restart, trail purge, checkpoint reposition or recovery. Record all errors before attempting corrections.
+Consult [08](08-monitoring-lag-checkpoints-and-recovery.md) before any restart, trail purge, checkpoint reposition or recovery. Record all errors before attempting corrections.
 
-## 6. Operational acceptance review
+## 6. Operational acceptance checklist
 
-### Written assessment (40 points)
+### Design and operational checks
 
 1. Draw the end-to-end MSA pipeline and explain each component (8).
 2. Explain why ARCHIVELOG and supplemental logging are different and what key columns achieve (6).
@@ -237,7 +237,7 @@ Consult [Chapter 8](chapter-08-monitoring-lag-checkpoints-and-recovery.md) befor
 5. Contrast process running, checkpoint advancing and verified target rows (6).
 6. Explain one secure authentication model and why credential wallets cannot be transplanted (6).
 
-### Practical assessment (60 points)
+### Implementation validation gates
 
 | Competency | Points |
 |---|---:|
@@ -248,46 +248,19 @@ Consult [Chapter 8](chapter-08-monitoring-lag-checkpoints-and-recovery.md) befor
 | Three separately proven DML tests and reconciliation | 15 |
 | One safely recovered failure with documented checkpoints | 5 |
 
-**Proposed grading:** pass at 80/100 or higher **and** satisfy mandatory safety conditions: no credential disclosure, no unacknowledged replication gap, valid initial baseline and all three DML tests passed. This is an instructor-created rubric, not an Oracle certification exam or score.
+**Operational acceptance:** all mandatory safety controls must pass: no credential disclosure, no unexplained replication gap, a verified initial baseline and successful INSERT/UPDATE/DELETE validation with retained evidence.
 
-## 7. Evidence submission template
-
-```text
-Student / lab owner / date / timezone:
-GoldenGate exact build and Oracle DB source/target releases:
-Host OS and source/target deployments:
-Network/TLS verification and OS user model:
-Oracle CDB/PDB identifiers and logging state:
-Database account privilege verification:
-Source/target object inventory, PKs and supplemental logging:
-Captured OGGCA configurations (sanitized; no secrets):
-Extract registration, process parameters, trail prefix/checkpoint:
-Distribution/Receiver endpoint/path and trail checks:
-Instantiation baseline, export/import and SCN/CSN records:
-Replicat type, parameters, checkpoint and start position:
-INSERT: source committed / target SQL evidence:
-UPDATE: source committed / target SQL evidence:
-DELETE: source committed / target SQL evidence:
-Restart/recovery scenario, reports and checkpoint evidence:
-Unresolved errors and approved corrective actions:
-Data reconciliation and pass/fail decision:
-Evidence label: LAB VERIFIED / PARTIAL / NOT EXECUTED:
-Reviewer signoff and revision notes:
-```
 
 ## 8. Final project deliverables
 
-Store sanitized copies of the topology, exact version/compatibility record, final parameter files, selected SQL, process reports, checkpoints, logged commands, DML and reconciliation evidence, recovery notes and a short teaching slide/lab handout. Retain original instructor handouts **privately** and credit Oracle for authoritative syntax.
+Store sanitized topology diagrams, release and compatibility records, parameter files, SQL, process reports, checkpoints, logged operations, DML reconciliation and recovery evidence. Keep third-party proprietary materials in access-controlled storage and retain Oracle references for authoritative syntax.
 
-**Do not publish:** passwords, wallets, TLS private keys, unaudited installation response files, client database data, internal production addresses, copyrighted instructor handouts or sensitive logs.
+**Do not publish:** passwords, wallets, TLS private keys, unaudited installation response files, client database data, internal production addresses, copyrighted third-party course materials or sensitive logs.
 
-## 9. Evidence state and links
+## 9. Evidence requirements and references
 
-- **Training-derived:** sessions 1–17, architecture, procedures and concepts; original handouts archived separately.
+- **Reference procedures:** Architecture, configuration and recovery instructions are supported by the linked Oracle documentation.
 - **Vendor-reference:** official Oracle 26ai Extract/Replicat/path/instantiation workflows.
-- **Historical:** linked Oracle 19c→26ai migration and other lab outcomes described in their own repositories.
-- **Reconstructed:** sample lab topology, dummy identifiers, test DML, teaching assessment and acceptance plan.
-- **Not performed now:** full deployment, source and target changes, new replication success, downtime test or recovery exercise.
 
 ### Oracle documentation
 
@@ -298,4 +271,4 @@ Store sanitized copies of the topology, exact version/compatibility record, fina
 - [Oracle 26ai — Data Pump per-table instantiation](https://docs.oracle.com/en/database/goldengate/core/26/coredoc/using-data-pump-automatic-table-instantiation-oracle-ma.html)
 - [Oracle 26ai — Replication components and checkpoints](https://docs.oracle.com/en/database/goldengate/core/26/coredoc/overview-components-data-replication-oracle-goldengate.html)
 
-**Completion:** Chapter 12 closes the **12-chapter draft curriculum**. The next project phase is not more core chapters: it is a unified command reference, cross-chapter technical accuracy audit, an evidence-backed lab execution, and teaching-ready handouts.
+**Follow-up work:** Consolidate a command reference, review release-specific syntax across topics, and attach execution evidence from the end-to-end lab.

@@ -1,30 +1,21 @@
-# Oracle GoldenGate Microservices — Engineering Field Guide
+# Oracle GoldenGate 26ai Engineering Field Guide
 
-Reference procedures for GoldenGate Microservices architecture, installation, capture, transport, apply, operations and migration. Configuration examples do not constitute executed lab results.
+Reference procedures for GoldenGate Microservices architecture, installation, capture, transport, apply, operations and migration.
 
-## Engineering reference chapters
+## Engineering topics
 
-1. [Chapter 1 — Architecture, Deployment Models and Technical Prerequisites](chapter-01-architecture-and-prerequisites.md) — architecture, read-only SQL reconnaissance, validation exercises and evidence standards.
-2. [Chapter 2 — Installation and Microservices Deployment](chapter-02-installation-and-microservices-deployment.md) — prerequisites, installation options, OGGCA, Service Manager lifecycle, security and lab validation.
-3. [Chapter 3 — Oracle Database Preparation](chapter-03-oracle-database-preparation.md) — CDB/PDB scope, ARCHIVELOG, privileges, supplemental logging, credentials and SQL verification.
-
-4. [Chapter 4 — Integrated Extract and Source Trails](chapter-04-integrated-extract-and-source-trails.md) — capture registration, parameters, trails and checkpoint diagnostics.
-
-5. [Chapter 5 — Distribution and Receiver Services](chapter-05-distribution-and-receiver-services.md) — secure network path setup, trail transport, filtering and monitoring.
-
-6. [Chapter 6 — Integrated Replicat and Validation](chapter-06-integrated-replicat-and-validation.md) — checkpoint table, Integrated Replicat, SQL DML tests, reconciliation and troubleshooting.
-
-7. [Chapter 7 — Initial Load, SCN/CSN and Migration Cutover](chapter-07-initial-load-scn-csn-and-cutover.md) — Data Pump instantiation, file-based load, positioning, validation, and cutover/rollback.
-
-8. [Chapter 8 — Monitoring, Lag, Checkpoints and Incident Recovery](chapter-08-monitoring-lag-checkpoints-and-recovery.md) — diagnostics, heartbeat, retention, troubleshooting and recovery exercises.
-
-9. [Chapter 9 — Parameters, Filtering, Column Mapping and Collision Handling](chapter-09-parameters-filtering-mapping-and-collisions.md) — safe changes, table onboarding and validation exercises.
-
-10. [Chapter 10 — Security and Interoperability](chapter-10-security-credentials-and-interoperability.md) — accounts, TLS, credentials, and mixed-mode integration.
-
-11. [Chapter 11 — Performance, High Availability and Automation](chapter-11-performance-high-availability-and-automation.md) — bottleneck diagnostics, parallelism, managed processes, XAG, retention and exercises.
-
-12. [Chapter 12 — Complete Implementation Lab and Final Assessment](chapter-12-complete-lab-and-instructor-assessment.md) — end-to-end lab plan, safety gates, DML validation, recovery exercises and acceptance criteria.
+01. [Architecture and Deployment Prerequisites](01-architecture-and-prerequisites.md) — architecture, read-only SQL reconnaissance, validation exercises and evidence standards.
+02. [Installation and Microservices Deployment](02-installation-and-microservices-deployment.md) — prerequisites, installation options, OGGCA, Service Manager lifecycle, security and lab validation.
+03. [Oracle Database Preparation](03-oracle-database-preparation.md) — CDB/PDB scope, ARCHIVELOG, privileges, supplemental logging, credentials and SQL verification.
+04. [Integrated Extract and Source Trails](04-integrated-extract-and-source-trails.md) — capture registration, parameters, trails and checkpoint diagnostics.
+05. [Distribution and Receiver Services](05-distribution-and-receiver-services.md) — secure network path setup, trail transport, filtering and monitoring.
+06. [Integrated Replicat and Validation](06-integrated-replicat-and-validation.md) — checkpoint table, Integrated Replicat, SQL DML tests, reconciliation and troubleshooting.
+07. [Initial Load, SCN/CSN and Cutover](07-initial-load-scn-csn-and-cutover.md) — Data Pump instantiation, file-based load, positioning, validation, and cutover/rollback.
+08. [Monitoring, Checkpoints and Recovery](08-monitoring-lag-checkpoints-and-recovery.md) — diagnostics, heartbeat, retention, troubleshooting and recovery exercises.
+09. [Parameters, Filtering, Mapping and Collisions](09-parameters-filtering-mapping-and-collisions.md) — safe changes, table onboarding and validation exercises.
+10. [Security and Interoperability](10-security-credentials-and-interoperability.md) — accounts, TLS, credentials, and mixed-mode integration.
+11. [Performance, High Availability and Automation](11-performance-high-availability-and-automation.md) — bottleneck diagnostics, parallelism, managed processes, XAG, retention and exercises.
+12. [End-to-End Implementation Lab](12-end-to-end-implementation-lab.md) — end-to-end lab plan, safety gates, DML validation, recovery exercises and acceptance criteria.
 
 ## Verification standard
 
@@ -50,7 +41,7 @@ Physical Data Guard redo apply and GoldenGate logical replication serve differen
 
 Before software installation, record Oracle and GoldenGate versions, certification, Oracle Linux/kernel baseline, storage, service accounts, directory layout, port assignment, network/firewall rules, TLS setup, TNS connectivity and restart procedures.
 
-A training session provided these *illustrative* invocation patterns:
+Example invocation patterns (verify against the installed release):
 
 ```bash
 # Oracle Universal Installer: response file must exist and match installed release.
@@ -60,7 +51,7 @@ A training session provided these *illustrative* invocation patterns:
 ./oggca.sh -silent -responsefile /path/to/deployment.rsp
 ```
 
-A complete OGGCA runbook additionally needs the actual sanitized response-file keys, location of executable, Service Manager registration method, deployment service configuration, encrypted administration access and health checks. The training archive does **not** contain these complete inputs.
+A complete OGGCA runbook additionally needs the actual sanitized response-file keys, location of executable, Service Manager registration method, deployment service configuration, encrypted administration access and health checks. These inputs must be collected from the actual deployment before the procedure is considered executable.
 
 ## 3. Database prerequisites and logging
 
@@ -78,7 +69,7 @@ SELECT capture_name
 FROM dba_capture;
 ```
 
-Example configuration statement from training:
+Illustrative configuration statement:
 
 ```sql
 -- CHANGE CONTROL REQUIRED: Oracle database setting, not a read-only check.
@@ -96,7 +87,7 @@ cd "$GG_HOME/bin"
 ./adminclient
 ```
 
-Illustrative Admin Client inspection commands recorded in training:
+Illustrative Admin Client inspection commands:
 
 ```text
 INFO ALL
@@ -133,7 +124,7 @@ A consistent source snapshot and transactional capture must be aligned to an **e
 SELECT current_scn FROM v$database;
 ```
 
-Do not generalize training `AFTERCSN` examples into a zero-downtime cutover recipe. Validate supported start syntax and semantics, source/target consistency, reconciliation, cutover gates, rollback capability and downtime commitments.
+Do not generalize `AFTERCSN` examples into a zero-downtime cutover recipe. Validate supported start syntax and semantics, source/target consistency, reconciliation, cutover gates, rollback capability and downtime commitments.
 
 ## 7. Filtering, column mapping, and new tables
 
@@ -179,5 +170,5 @@ For adding a new table, coordinate supplemental logging, capture inclusion, cons
 - Record complete sanitized OUI and OGGCA response files from an actual supported lab deployment.
 - Publish tested Extract and Replicat parameter files and command transcripts.
 - Document initial-load strategy with instantiation verification and restart recovery.
-- Cross-link the [Oracle 19c → 26ai historical migration](https://github.com/omoriwor-commits/enterprise-data-platform-labs/tree/main/migrations/oracle-19c-to-26ai-goldengate) without representing these training examples as its exact historical syntax.
+- Cross-link the [Oracle 19c → 26ai migration](https://github.com/omoriwor-commits/enterprise-data-platform-labs/tree/main/migrations/oracle-19c-to-26ai-goldengate) without suggesting that illustrative commands reproduce the project's original executed configuration.
 

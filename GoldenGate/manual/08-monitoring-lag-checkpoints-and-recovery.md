@@ -1,14 +1,14 @@
-# Chapter 8 — Monitoring, Lag, Checkpoints, Trail Retention and Incident Recovery
+# 08 — Monitoring, Checkpoints and Recovery
 
-> **Documentation classification:** reference-derived operational topics plus independently checked Oracle GoldenGate 26ai references. **No new production or lab incident executed for this chapter.** All names and sample incidents are teaching examples.
+**Scope:** GoldenGate 26ai process monitoring, checkpoint interpretation, trail retention and incident recovery. Process names are illustrative; recorded results belong in project evidence.
 >
 > **Reference scope:** Oracle-documented procedures and illustrative examples. Lab results are recorded separately.
 >
-> **Goal:** Be useful both as a DBA on-call runbook and as a teaching module. Diagnose first, preserve state, remediate only under change control, and validate data afterward.
+**Operational approach:** Diagnose first, preserve checkpoints and logs, remediate under change control, then validate target data.
 
-## Learning outcomes
+## Scope and operational diagnostics
 
-After this chapter, a reader can:
+This page covers:
 1. Distinguish process status, lag at checkpoint, true process lag and end-to-end heartbeat lag.
 2. Trace failures through Extract, source trail, Distribution, Receiver, target trail, Replicat and target rows.
 3. Explain checkpoints and why missing redo or trails can defeat a restart.
@@ -76,7 +76,7 @@ Oracle documents LAG EXTRACT and LAG REPLICAT as more direct estimates than the 
 
 For a supported database setup, GoldenGate **heartbeat tables** provide monitoring of replication path latency and historical trends, with the required database objects and privileges. Establish them under a separate approved configuration procedure; do not assume heartbeat functionality is already configured.
 
-### A correction from training reference material
+### Checkpoint-age alert thresholds
 
 A statement such as *time since checkpoint must be below ten seconds* is **not a universal GoldenGate rule**. Define workload-specific latency objective, acceptable idle behavior, alert thresholds and on-call response policy. A quiet source should not automatically produce the same metrics as an active one.
 
@@ -154,7 +154,7 @@ Confirm source COMMIT and expected mapped table
 
 ## 7. Parameter changes and restart discipline
 
-reference material teaches: obtain approval, stop the affected process when required, back up its existing parameters, edit/validate, restart and observe. Apply this with awareness of shared paths and live transactions.
+For parameter changes, obtain approval; capture current reports/checkpoints; back up parameters; edit and validate; restart only affected processes when required; and observe downstream recovery. Apply this with awareness of shared paths and live transactions.
 
 1. Capture INFO/lag/checkpoint/stats and process report **before** modification.
 2. Save a sanitized configuration diff and accurate rollback file.
@@ -181,23 +181,15 @@ Correlate process IDs, port ownership, service mode, deployment home and logs. D
 
 Related project: https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/goldengate/troubleshooting/goldengate-26ai-oggca-daemon-registration-troubleshooting.md
 
-## 9. Teaching exercises
+## 9. Troubleshooting scenarios
 
-**Exercise A — process health vs correctness:** INFO ALL shows Extract/Replicat RUNNING. Target table lacks last committed row. Identify four more pieces of evidence needed before declaring a root cause.
+**RUNNING but missing rows:** source transaction/query, current Extract trail/position, transport path and Receiver positions, Replicat report/checkpoint, mapping/filters and actual target query. RUNNING is not the conclusion.
 
-**Answer:** source transaction/query, current Extract trail/position, transport path and Receiver positions, Replicat report/checkpoint, mapping/filters and actual target query. RUNNING is not the conclusion.
+**Recovery checkpoint:** Extract may need the earlier redo to recover/assemble the long-running transaction. Retain it until all Oracle/GoldenGate consumers and recovery policies permit purge.
 
-**Exercise B — recovery checkpoint:** Extract reads current archive sequence 500 but its recovery checkpoint is sequence 498 because a source transaction remains open. Why is deleting 498 dangerous?
+**Trail retention:** source/target trail data needed by the downstream checkpoint may be deleted before apply resumes. Use a checkpoint-aware maintenance design plus tested retention/recovery policy.
 
-**Answer:** Extract may need the earlier redo to recover/assemble the long-running transaction. Retain it until all Oracle/GoldenGate consumers and recovery policies permit purge.
-
-**Exercise C — retention:** A Purge Trails task is configured to ignore checkpoints and retain only one hour. Replicat is stopped for maintenance lasting six hours. What fails?
-
-**Answer:** source/target trail data needed by the downstream checkpoint may be deleted before apply resumes. Use a checkpoint-aware maintenance design plus tested retention/recovery policy.
-
-**Exercise D — latency:** Extract lag is small and Replicat lag is near zero, yet end-to-end application update is delayed. What else might matter?
-
-**Answer:** distribution/receiver delay, heartbeat design, application commit and observation timestamps, mapping/filtering, source/target clock quality, and whether the transaction actually reached the target.
+**End-to-end latency:** distribution/receiver delay, heartbeat design, application commit and observation timestamps, mapping/filtering, source/target clock quality, and whether the transaction actually reached the target.
 
 ## 10. Incident evidence template
 
@@ -221,12 +213,11 @@ Remaining risks, monitoring and follow-up:
 Evidence files and sanitized links:
 ~~~
 
-## Source quality classification and limitations
+## Evidence and validation status
 
-- **Training-confirmed topics:** process status, parameter review, trail flow and report locations (Days 9–12).
+- **Operational scope:** Process status, parameter review, trail checkpoints, reports and recovery controls.
 - **Oracle-documented:** INFO/LAG/STATS distinctions; heartbeat; Extract recovery checkpoint; checkpoint-aware purging.
-- **Reconstructed:** sample names, decision tree and all classroom incidents except the linked historical DEP1 service-registration event.
-- **Not verified here:** any newly gathered lag measurement, executed restart, trail purge or database reconciliation.
+- **Examples:** Process names and the decision tree are illustrative; the linked DEP1 event is documented separately.
 
 ## Official Oracle GoldenGate 26ai references
 
@@ -240,4 +231,4 @@ Evidence files and sanitized links:
 - [Purging Archive Logs](https://docs.oracle.com/en/database/goldengate/core/26/coredoc/purging-archive-logs.html)
 - [Automate Maintenance Tasks — Purge Trails](https://docs.oracle.com/en/database/goldengate/core/26/coredoc/automate-maintenance-tasks-1.html)
 
-**Next:** Chapter 9 — Parameters, filtering, column mapping, conflict handling and safely adding new replicated tables.
+**Next:** [09 — Parameters, Filtering, Mapping and Collisions](09-parameters-filtering-mapping-and-collisions.md)

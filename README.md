@@ -1,20 +1,29 @@
 # Oracle Database Platform Engineering
 
-Oracle database engineering portfolio covering **migration, replication, backup and recovery, high availability, troubleshooting, and automation** across Oracle Cloud Infrastructure (OCI), Azure, and local VirtualBox environments.
+Oracle database lab portfolio focused on **migration and GoldenGate replication** across Oracle Cloud Infrastructure (OCI), Azure and local VirtualBox environments, with RAC, Data Guard and RMAN lab work and a DevOps automation project in progress.
 
 These are independent hands-on lab projects. The current goal is to bring the strongest existing Oracle DBA work into one repeatable, version-controlled **Oracle Database Platform Automation** platform using DevOps practices.
 
+## Migration path
+
+I took one Oracle workload through three GoldenGate 26ai migrations:
+
+```text
+Oracle 19c / OL 7.9 (on-prem)
+   | 1. Upgrade + OS migration (remote capture, local apply)
+   v
+Oracle 26ai / OL 9.8 (on-prem)
+   | 2. On-prem to cloud (local capture, remote apply)
+   v
+Oracle 26ai / OCI Compute
+   | 3. Cross-cloud, heterogeneous (Azure hub: remote capture, remote apply)
+   v
+SQL Server 2022 / Azure
+```
+
 ## Engineering projects
 
-### Oracle 19c → OCI migration — completed historical lab
-
-Migration exercises using **RMAN, Oracle Data Pump, and GoldenGate** with OCI Base Database Service. Sanitized scripts and output will be added to this repository.
-
-### RMAN backup and recovery — historical lab exercises
-
-Full and incremental backup, restore, and point-in-time recovery scenarios. Exercises included full and incremental backup, restore, and point-in-time recovery. Reusable commands and sanitized validation records are being consolidated.
-
-### Oracle 19c → Oracle AI Database 26ai — GoldenGate migration
+### Migration 1 — Oracle 19c → 26ai Upgrade, OS Migration & GoldenGate Replication
 
 [Migration architecture and implementation notes](https://github.com/omoriwor-commits/enterprise-data-platform-labs/tree/main/migrations/oracle-19c-to-26ai-goldengate)
 
@@ -26,29 +35,57 @@ Oracle 19c / PRODBHR (Oracle Linux 7.9)
    -> Oracle AI Database 26ai / PDB23AI (Oracle Linux 9.8)
 ```
 
-**Engineering decision:** Run GoldenGate off-box on the newer Oracle Linux environment rather than install GoldenGate 26ai on the older source OS. Tested INSERT, UPDATE, DELETE, and DDL replication in the lab. Sanitized configuration and test output will be added to the project repository.
+**Engineering decision:** Run GoldenGate off-box on the newer Oracle Linux environment rather than install GoldenGate 26ai on the older source OS. Tested DML (INSERT, UPDATE, DELETE) and DDL (CREATE TABLE, DROP TABLE) replication. Sanitized configuration and test output will be added to the project repository.
 
-### OCI → Azure heterogeneous CDC — validated source capture and target connectivity
+### Migration 2 — Oracle 26ai On-Premises to OCI Migration & GoldenGate Replication
+
+[Implementation and rerun playbook](https://github.com/omoriwor-commits/enterprise-data-platform-labs/tree/main/migrations/oracle-26ai-to-oci-goldengate)
+
+Local Oracle 26ai (OL 9.8) → self-managed Oracle 26ai on OCI Compute (OL 9.8). I used **RMAN and Data Pump for the initial load**, then GoldenGate 26ai for CDC with **local capture at the source-side GoldenGate tier and remote apply to OCI**. I tested DML (INSERT, UPDATE, DELETE) and DDL (CREATE TABLE, DROP TABLE) replication, and confirmed each change reached the OCI target.
+
+```text
+LOCAL LAB / OL9.8                           OCI COMPUTE / OL9.8
+Source Oracle 26ai                          Self-managed Oracle 26ai
+  + GoldenGate source-side tier                 ^
+    Extract: LOCAL capture                     |
+    Replicat: REMOTE apply --------------------+
+Initial load: RMAN / Data Pump
+```
+
+### Migration 3 — Oracle 26ai (OCI) to Azure SQL Server 2022: Heterogeneous Cross-Cloud Migration & GoldenGate Replication
 
 [Enterprise Multi-Cloud Database Platform Lab](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab)
 
 ```text
-OCI Oracle 26ai
-   -> IPsec/IKEv2 VPN + BGP
-   -> Azure GoldenGate hub: Extract EXTORA / trail ea
-   -> SQL Server Replicat REPSQL
-   -> Azure SQL Server 2022
+OCI Oracle 26ai / PDB23AI
+         |
+         | Oracle Net over private OCI-Azure IPsec/BGP connection
+         v
+Azure GoldenGate hub (OL9.8)
+   DEP1: EXTORA — REMOTE Integrated Extract / source trail ea
+   MSSQLDEP: REPSQL — REMOTE apply via SQL_TGT ODBC
+         |
+         v
+Azure SQL Server 2022 / OGGTargetDB.HOLA.FOX
 ```
 
-Validated OCI–Azure VPN/BGP connectivity, Oracle GoldenGate Extract and trail generation, private SQL Server connectivity, and target-side replication prerequisites. SQL Server Replicat apply remained incomplete when the cloud lab concluded.
+I completed the OCI-to-Azure implementation and verified INSERT, UPDATE and DELETE replication through GoldenGate into Azure SQL Server 2022. The archived September checkpoint records earlier VPN/BGP, Extract, trail, SQL Server ODBC and Replicat preparation work; final sanitized target-side validation output will be published after the rerun. [Implementation incidents and resolution history](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/project-history/project-history-and-troubleshooting.md) preserve the obstacles encountered.
+
+### RMAN backup and recovery
+
+Full and incremental backup, restore, and point-in-time recovery scenarios. Reusable commands and sanitized validation records are being consolidated.
 
 ### Oracle RAC / ASM — two-node local lab
 
+[Two-node RAC build and troubleshooting runbook](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/runbooks/oracle-rac/oracle19c-2node-rac-build-and-troubleshooting.md) — full Oracle 19c Grid, ASM and RAC database build, tested and reused.
+
+[Oracle 26ai two-node RAC build runbook (draft)](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/runbooks/oracle-rac/oracle26ai-2node-rac-build-runbook.md) — two-node 26ai build and functional validation completed October 19, 2026; remaining configuration and compatibility checks are tracked in the runbook.
+
 [October 2026 node startup investigation](Oracle-Database-Platform-Automation/incident-reports/2026-10-rac-node2-startup-investigation.md)
 
-Cluster and operating-system troubleshooting across VirtualBox, Oracle Linux, Clusterware, and ASM. Node OS availability was restored; database and cluster-wide recovery checks are part of the next validation pass.
+The former 19c VMs were retired. The new 26ai cluster runs RAC1/RAC2 with RACPDB1 READ WRITE on both nodes. Functional validation includes archiving, SCAN connection distribution, new connections while RAC2 is stopped, and service restoration after restart. The SCAN availability test is user-confirmed; its raw transcript remains to be published. The older 19c incident retains its original, unconfirmed root cause.
 
-Operational code: [RAC health-check Python script](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/scripts/oracle-rac/rac_health_fixed.py). The [incident report](Oracle-Database-Platform-Automation/incident-reports/2026-10-rac-node2-startup-investigation.md) records the outstanding cluster-wide validation.
+Operational code: [RAC health-check Python script](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/scripts/oracle-rac/rac_health_check.py). Revision `2026-10-19.3` was live-tested as grid on October 19 at 10:46 CDT, collecting database and ASM checks with zero critical findings and four warnings. [Health evidence](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/evidence/oracle-rac/2026-10-19-rac26-health-check-v3.md) records alert-history and kernel/RU review items; HugePages remains unconfigured.
 
 ### Oracle Data Guard — health-check automation
 
@@ -80,10 +117,10 @@ Monitoring, validation, runbooks, and recovery testing
 | Capability | Position |
 |---|---|
 | Local Oracle 19c, 23/26ai and GoldenGate labs | Available for continued validation |
-| Historical Oracle migration and RMAN exercises | Completed lab work; evidence consolidation underway |
-| OCI–Azure VPN, Extract, and SQL connectivity | Validated in historical lab |
-| SQL Server Replicat end-to-end apply | Incomplete in historical lab |
-| Oracle health-check automation | Data Guard Bash and RAC Python scripts published; validation in progress |
+| Oracle migrations and RMAN recovery | Completed lab work; evidence consolidation underway |
+| OCI–Azure VPN, Extract, and SQL connectivity | Completed and validated |
+| SQL Server Replicat end-to-end apply | Completed; final apply logs to be archived during rerun |
+| Oracle health-check automation | RAC Python revision 2026-10-19.3 live-tested on 26ai; Data Guard validation tracked separately |
 | RMAN automation and recovery controls | Planned integration |
 | Terraform / Ansible infrastructure automation | Planned |
 | Database CI/CD with GitHub Actions | Planned |
@@ -91,7 +128,7 @@ Monitoring, validation, runbooks, and recovery testing
 
 ## Technical knowledge archive
 
-The [Oracle Database Engineering Knowledge Base](KNOWLEDGE-BASE.md) organizes reusable architecture decisions, procedures, incident analysis, and historical technical experience. New records follow the [technical documentation template](docs/TECHNICAL-RECORD-TEMPLATE.md).
+The [Oracle Database Engineering Knowledge Base](KNOWLEDGE-BASE.md) organizes reusable architecture decisions, procedures, incident analysis, and engineering experience.
 
 ## Repository guide
 

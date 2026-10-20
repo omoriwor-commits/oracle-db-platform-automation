@@ -1,21 +1,23 @@
 # Oracle Database Platform Automation
 
-> **Canonical project roadmap — one integrated project, not separate Oracle/DevOps/multi-cloud projects.**
+> **Project overview: one integrated project, not separate Oracle/DevOps/multi-cloud projects.** The controlling roadmap is [ROADMAP.md](ROADMAP.md).
 
 ## Mission
 
-Build a repeatable, automated, secure, observable and recoverable enterprise Oracle database platform using the **DevOps syllabus** as the learning and implementation framework.
+**Starting point:** Before this project, I took one Oracle workload through three GoldenGate 26ai migrations: (1) Oracle database upgrade and OS migration with replication, (2) on-premises to OCI cloud migration with replication, and (3) cross-cloud heterogeneous Oracle-to-SQL Server migration with replication. This project rebuilds that path as a repeatable, automated platform and publishes the evidence.
+
+Build a repeatable, automated, secure, observable and recoverable Oracle database platform using the **DevOps syllabus** as the learning and implementation framework.
 
 **Career target:** Database Platform Engineer / Oracle Database Engineer with DevOps and Cloud Automation skills.
 
 **Method:** Learn → Build → Test → Prove → Document → Publish.
 
-## One integrated architecture
+## Architecture v1
 
 ```text
 OCI: Oracle Database 26ai (source)
        |
-       | Planned site-to-site VPN / BGP
+       | Site-to-site IPsec VPN / BGP
        | One-way heterogeneous CDC
        v
 Azure: GoldenGate 26ai services
@@ -31,7 +33,7 @@ Local supporting lab: Oracle RAC / ASM
 Future extensions: AWS, then advanced AI automation
 ```
 
-**Important:** The arrow shows the intended *logical* one-way data flow. Do not infer that the VPN, BGP, or end-to-end Replicat has been validated until evidence is recorded.
+**Status:** The pipeline shown was completed in my earlier lab. Within this project it will be rebuilt with Terraform, Ansible and CI/CD.
 
 ## DevOps syllabus mapped to project deliverables
 
@@ -56,20 +58,18 @@ Future extensions: AWS, then advanced AI automation
 
 **Phase numbers describe the syllabus, not a rigid execution order.**
 
-## Execution order by career impact
+## Execution order
 
-1. **GoldenGate first:** finish and validate Replicat apply; prove INSERT/UPDATE/DELETE propagation, latency and reconciliation. Preserve working source deployment `DEP1`; verify target deployment details before making changes.
-2. **Terraform + Ansible:** build a repeatable Oracle Linux/database environment with infrastructure-as-code and configuration management.
-3. **Database CI/CD:** version SQL/PLSQL and automate controlled schema deployments through GitHub Actions.
-4. **Platform operations:** security, observability, RMAN, Data Guard, RAC/ASM and failure/recovery testing.
-5. **Integrated demonstration:** document the full pipeline; add AWS/Kubernetes/AI only when the core is demonstrably working.
+The build order, stage targets and status live in one place: [ROADMAP.md, Execution Order](ROADMAP.md#execution-order-controlling). Phase 0 work is in [phase-00-foundation](phase-00-foundation/README.md).
 
 ## Target project directory structure
 
 ```text
-DovOps_T/
+oracle-db-platform-automation/
 └── Oracle-Database-Platform-Automation/
-    ├── README.md                  # this authoritative roadmap
+    ├── README.md                  # project overview
+    ├── ROADMAP.md                 # controlling roadmap and execution order
+    ├── incident-reports/
     ├── docs/
     │   ├── architecture/
     │   ├── roadmap/
@@ -110,13 +110,19 @@ Status legend: **Done** = verified evidence; **In progress** = actively implemen
 ## Project governance
 
 - **One project identity:** Oracle Database Platform Automation.
-- **One master roadmap:** this document.
+- **One master roadmap:** [ROADMAP.md](ROADMAP.md).
 - **One learning framework:** DevOps syllabus applied to Oracle database platform engineering.
 - **One primary data pipeline:** OCI Oracle → Azure GoldenGate → Azure SQL Server (one-way CDC).
 - Oracle DBA, GoldenGate, RAC, Data Guard, RMAN, DevOps, cloud, and automation are **workstreams/phases within this project**, not competing project identities.
 - Existing repositories and technical reference folders can continue to hold reusable notes or prior lab artifacts; link verified evidence rather than claiming it has moved.
 - Never commit credentials, SSH private keys, connection secrets, production data, or unredacted screenshots.
 
+## Current RAC checkpoint — October 19, 2026
+
+The two-node Oracle 26ai RAC build and functional validation are complete in the independent VirtualBox lab. RAC1/RAC2 are OPEN and RACPDB1 is READ WRITE on both; archiving, SCAN connection distribution, controlled RAC2 stop/new-connection availability and instance/service restoration have been reported complete. Revision `2026-10-19.3` of the Python health check collected OS, Clusterware, database and ASM results in the supplied 10:46 CDT grid run: zero critical findings and four review warnings. [Health evidence](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/evidence/oracle-rac/2026-10-19-rac26-health-check-v3.md).
+
+HugePages, the OL9 UEK8/23.26.1 compatibility gap and remaining runbook Verify items are still open. This checkpoint does not mark the entire automation roadmap complete; Terraform, Ansible and CI/CD remain separately tracked goals.
+
 ## Next checkpoint
 
-**Priority:** complete GoldenGate target Replicat and capture repeatable end-to-end CDC test evidence. Then begin Terraform/Ansible provisioning automation.
+Stage 1, Order 1 — close Phase 0.

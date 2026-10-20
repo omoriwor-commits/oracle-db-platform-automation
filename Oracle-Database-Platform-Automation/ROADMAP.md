@@ -1,6 +1,6 @@
 # Oracle Database Platform — Master Roadmap
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** Baseline / controlling roadmap  
 **Target role:** Oracle Database Automation / Platform Engineer
 
@@ -9,13 +9,50 @@
 
 **Pacing:** Phases advance by competency, not by calendar. Each phase is complete only when its **Done when** criteria are met and documented.
 
-| Window | Phases |
-|---|---|
-| ~Weeks 1–12 | Phases 0–9 |
-| Following ~4–6+ weeks | Phases 10A–12 |
-| After the core platform | Phase II |
+## Execution Order (controlling)
 
-**Certifications:** OCI Architect Associate during Phases 4–5; HashiCorp Terraform Associate optional after Phase 5.
+Phase numbers follow the DevOps syllabus. They are **not** the build order.
+This section is the single controlling execution order; README.md links here
+rather than repeating it. Pacing is by competency: a stage is complete only when its
+**Done when** criteria are met and evidence is committed.
+
+### Stage 1 — Core Platform v1 (target: ~8 weeks)
+
+| Order | Target week | Work | Phase | Status |
+|---|---|---|---|---|
+| 1 | 1 | Close Phase 0: protect `main`, budget alerts, lab inventory, security/naming/documentation standards (repo rename done Oct 2026) | 0 | In progress |
+| 2 | 1 | Maintain completed 26ai RAC build/functional-validation evidence; resolve compatibility and hardening follow-ups. Preserve the retired 19c incident separately with its unconfirmed root cause | 10B | Build and functional validation complete; follow-ups in progress |
+| 3 | 2 | Extend existing Oracle health checks with scheduling, retained evidence and automated quality checks; all work via PRs | 1–2 | RAC Python 2026-10-19.3 live-tested; scheduling/integration and Data Guard validation tracked separately |
+| 4 | 3–4 | Rebuild GoldenGate 26ai pipeline (OCI Oracle → Azure SQL Server): DML, row-count validation, lag, restart | 11 | Planned |
+| 5 | 5 | Terraform OCI VCN + compute modules; remote state in Object Storage; clean apply/destroy | 4–5 | Planned |
+| 6 | 6 | Ansible configures the fresh server and installs Oracle with no manual steps; idempotent rerun | 6 | Planned |
+| 7 | 7 | GitHub Actions: ShellCheck, `terraform validate` + TFLint, ansible-lint on every PR | 3 (partial) | Planned |
+| 8 | 8 | Grafana dashboard (availability, tablespace, backup status); 5-minute recorded demo | 9A (partial), 12 (partial) | Planned |
+
+**Stage 1 done when:** a new OCI server can be provisioned, configured and
+health-checked from this repository, every PR runs the pipeline, the
+GoldenGate pipeline has published evidence, and a recorded demo exists.
+
+### Stage 2 — Platform Operations
+
+1. Database CI/CD with SQLcl Liquibase and an ephemeral Oracle Database Free test database (Phase 3, full)
+2. RMAN automated restore testing and recovery reports (Phase 9C)
+3. Security hardening and secrets via Vault (Phase 9B)
+4. Data Guard automation, switchover and failover tests (Phase 10A)
+5. Rerun and document migrations 1 and 2: 19c → 26ai and on-premises → OCI (Phase 11)
+
+### Stage 3 — Containers and Integration
+
+1. Docker: Oracle Database Free container, Trivy scanning (Phase 7)
+2. Kubernetes + Helm for supporting services (Phase 8)
+3. Integrated capstone: full rebuild from runbooks, final architecture, demo (Phase 12)
+
+### Stage 4 — Extensions (only after Phase 12)
+
+AWS extension, then Phase II advanced platform engineering and agentic AI.
+
+**Certifications:** OCI Architect Associate after Stage 1 week 5;
+HashiCorp Terraform Associate after Stage 1.
 
 **Learning baseline:** Coding Macaw AI-Powered DevOps syllabus (Linux, Git/GitHub, CI/CD, AWS, Terraform, Azure, Docker, Kubernetes, Ansible, SRE, DevSecOps), applied to database platform engineering.
 
@@ -193,6 +230,10 @@ The pipeline should provision an ephemeral Oracle Database Free test database lo
 
 **Prerequisite:** Validate host CPU, RAM, storage, and virtualization capacity before committing to the two-node topology. Adjust VM sizing based on the Oracle version and actual host capacity.
 
+### Current checkpoint — 2026-10-19
+
+Two-node 26ai RAC is built and functional validation is complete: both instances OPEN, RACPDB1 READ WRITE on both, archiving and SCAN connection distribution checked, controlled RAC2 stop/new-connection availability and service restoration confirmed. The [health evidence](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/evidence/oracle-rac/2026-10-19-rac26-health-check-v3.md) separates collected output from user-confirmed results. HugePages, kernel/RU compatibility, further restart/node-failure testing and other runbook Verify items remain open. This does not mark every Phase 10B criterion or the overall automation platform complete.
+
 ### Done when
 - A two-node RAC database runs on ASM-backed shared storage.
 - A controlled node/service failure is simulated and service behavior/relocation is observed and documented.
@@ -202,7 +243,7 @@ The pipeline should provision an ephemeral Oracle Database Free test database lo
 
 ## Phase 11 — GoldenGate Heterogeneous CDC
 
-**Focus:** Complete the existing heterogeneous CDC pipeline:
+**Focus:** Rebuild my previously completed heterogeneous CDC pipeline within this project and publish its evidence:
 
 ```text
 Oracle Database 26ai (OCI)
@@ -211,6 +252,8 @@ Oracle GoldenGate 26ai (Azure)
         ↓
 SQL Server 2022 (Azure)
 ```
+
+Also rerun and document migrations 1 and 2 of my completed three-stage path: 19c → 26ai (OL 7.9 → 9.8) and 26ai → OCI Compute.
 
 Validate INSERT, UPDATE, DELETE, DDL where appropriate, lag monitoring, failure/restart, checkpoint behavior, recovery, data validation, and documentation.
 
