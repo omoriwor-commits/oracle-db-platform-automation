@@ -5,6 +5,7 @@ Operational notes from my self-directed Oracle lab work, checked against my two-
 | Runbook | Status |
 | ------- | ------ |
 | [Clusterware crsctl reference](rac-clusterware-crsctl-reference.md) | Verified on the 26ai RAC |
+| [Users, roles and profiles](users-roles-profiles.md) | Reference reviewed; lab enforcement tests pending |
 | [OCR, OLR and voting files](ocr-olr-administration.md) | Draft; log locations confirmed, commands to verify |
 | [RMAN backup automation](rman-backup-automation.md) | Draft; script written, first run to do |
 | [Daily and weekly health checks](database-health-checks.md) | Partly automated in the RAC health-check script |
