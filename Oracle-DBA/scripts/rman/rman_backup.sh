@@ -69,13 +69,14 @@ CROSSCHECK BACKUP;
 CROSSCHECK ARCHIVELOG ALL;
 $BODY
 DELETE NOPROMPT OBSOLETE;
-LIST BACKUP SUMMARY COMPLETED AFTER 'SYSDATE-1';
+LIST BACKUP SUMMARY;
 EXIT;
 EOF
 RC=$?
 
-# RMAN can return 0 with errors in the log, so check both.
-if [ "$RC" -ne 0 ] || grep -qE '^(RMAN|ORA)-[0-9]+' "$LOG"; then
+# Check RMAN's exit code and its error-stack banner (RMAN-00569). Plain
+# RMAN-08xxx lines are informational warnings and must not fail the run.
+if [ "$RC" -ne 0 ] || grep -q 'RMAN-00569' "$LOG"; then
   note "FAILED level $LEVEL (rman exit $RC); see $LOG"
   exit 1
 fi

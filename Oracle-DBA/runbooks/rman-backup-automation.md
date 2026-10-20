@@ -14,7 +14,7 @@ Script: [`scripts/rman/rman_backup.sh`](../scripts/rman/rman_backup.sh)
 | Retention, compression, parallelism and deletion policy set once with `CONFIGURE` | The script stays short, and `SHOW ALL` documents the policy. |
 | Archivelog deletion policy instead of `DELETE INPUT` | Archivelogs are only removed once backed up; a standby or GoldenGate Extract would otherwise lose logs it still needs. |
 | `DELETE OBSOLETE` after the backup succeeds | Never remove old backups before a new one exists. |
-| Error check on both RMAN's exit code and `RMAN-`/`ORA-` lines in the log | RMAN can exit 0 with errors in the log. |
+| Error check on RMAN's exit code and the `RMAN-00569` error-stack banner in the log | Catches failed commands without treating informational `RMAN-08xxx` warnings as failures. |
 | `flock` lock, instance check, syslog messages, log cleanup | One backup at a time, a clear failure when the local instance is down, and a trail outside the log file. |
 
 ## One-time setup
