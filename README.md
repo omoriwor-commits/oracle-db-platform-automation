@@ -79,9 +79,11 @@ Full and incremental backup, restore, and point-in-time recovery scenarios. Reus
 
 [Two-node RAC build and troubleshooting runbook](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/runbooks/oracle-rac/oracle19c-2node-rac-build-and-troubleshooting.md) — full Oracle 19c Grid, ASM and RAC database build, tested and reused.
 
-[Oracle 26ai two-node RAC build runbook (draft)](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/runbooks/oracle-rac/oracle26ai-2node-rac-build-runbook.md) — two-node 26ai build and functional validation completed October 19, 2026; remaining configuration and compatibility checks are tracked in the runbook.
+[Oracle 26ai two-node RAC build runbook (tested; open Verify items listed)](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/runbooks/oracle-rac/oracle26ai-2node-rac-build-runbook.md) — two-node 26ai build and functional validation completed October 19, 2026; remaining configuration and compatibility checks are tracked in the runbook.
 
-[October 2026 node startup investigation](Oracle-Database-Platform-Automation/incident-reports/2026-10-rac-node2-startup-investigation.md)
+[October 18, 2026 — 26ai node 2 root-script VM freeze and VT-x investigation](Oracle-Database-Platform-Automation/incident-reports/2026-10-18-rac26-node2-root-script-vm-freeze.md)
+
+[Earlier 19c node startup investigation](Oracle-Database-Platform-Automation/incident-reports/2026-10-rac-node2-startup-investigation.md)
 
 The former 19c VMs were retired. The new 26ai cluster runs RAC1/RAC2 with RACPDB1 READ WRITE on both nodes. Functional validation includes archiving, SCAN connection distribution, new connections while RAC2 is stopped, and service restoration after restart. The SCAN availability test is user-confirmed; its raw transcript remains to be published. The older 19c incident retains its original, unconfirmed root cause.
 
@@ -135,7 +137,7 @@ The [Oracle Database Engineering Knowledge Base](KNOWLEDGE-BASE.md) organizes re
 | Location | Material |
 |---|---|
 | [Oracle Database Platform Automation](Oracle-Database-Platform-Automation/) | Integrated architecture, roadmap, and incident reports |
-| [Oracle DBA](Oracle-DBA/) | Database administration and recovery references |
+| [Oracle DBA](Oracle-DBA/) | [Operational runbooks](Oracle-DBA/runbooks/README.md): Clusterware, OCR/OLR, RMAN backup automation, daily/weekly health checks and SQL Tuning Advisor; each lists its tested or pending status |
 | [GoldenGate](GoldenGate/) | Replication references |
 | [OCI](OCI/) / [Azure](Azure/) / [AWS](AWS/) | Cloud engineering references |
 | [DevOps](DevOps/) | Git, SSH, and reusable shell tooling |
