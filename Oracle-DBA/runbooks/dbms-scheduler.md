@@ -186,6 +186,25 @@ WHERE job_name = 'DEMO_SCHED_JOB' ORDER BY log_id DESC;
 
 Use MI for minutes; MM is month. Running-job views show current runs, not progress percentage. JOBS.STATE describes lifecycle/scheduling; JOB_RUN_DETAILS.STATUS describes an individual run. Successful runs need not leave a repeating job in SUCCEEDED state. Use owner-scoped DBA views only with authorized access. [Scheduler job states](https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/ALL_SCHEDULER_JOBS.html).
 
+### Job operation logs
+
+Run history is already covered above. For logged job operations in the current schema over the last two days:
+
+```sql
+SELECT log_id, log_date, job_name, operation, status, additional_info
+FROM user_scheduler_job_log
+WHERE job_name = 'DEMO_SCHED_JOB'
+  AND log_date > SYSTIMESTAMP - INTERVAL '2' DAY
+ORDER BY log_id DESC;
+
+-- Enter an actual LOG_ID returned by the preceding query.
+SELECT log_id, log_date, job_name, operation, status, additional_info
+FROM user_scheduler_job_log
+WHERE job_name = 'DEMO_SCHED_JOB' AND log_id = &selected_log_id;
+```
+
+Substitute the actual job name (for example RMAN_BACKUP, if it exists). USER views cover owned jobs; ALL views cover accessible jobs; authorized DBA views cover all jobs. With ALL/DBA views, also filter OWNER. Log coverage depends on logging level and retention; absence of a row is not proof a job never ran. STATUS may be NULL for non-run operations. See [Scheduler job log](https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/ALL_SCHEDULER_JOB_LOG.html).
+
 ## 6. Availability, external jobs and cleanup
 
 Do not promise replay of every schedule missed during downtime. Assess lateness, schedule_limit, end dates, enabled state, recovery/retry settings and available workers; verify actual logs. Recovery requires idempotent actions and reconciliation, not just a recurrence string.
