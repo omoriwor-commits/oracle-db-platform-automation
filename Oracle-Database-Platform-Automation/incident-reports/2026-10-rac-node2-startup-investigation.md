@@ -67,6 +67,10 @@ Record output and timestamps from both nodes. Confirm listener/service accessibi
 - Develop and test a narrowly scoped correction, then validate with SELinux enforcing if the environment supports it.
 - Keep Guest Additions failures separate from Clusterware failure until a causal connection is demonstrated.
 
+## Possible root cause (unconfirmed)
+
+In my October 18, 2026 26ai rebuild, VirtualBox ran in Hyper-V "snail mode" and node 2 froze during `root.sh`; the retry succeeded. That is a lead for this earlier incident, not proof that both failures had the same cause. Check the older VM's archived `VBox.log` for `Snail execution mode` or `Guest seems to be unresponsive`, then correlate timestamps with the startup failure. Matching evidence would make host virtualization contention a likely explanation. Until those logs are checked, the existing root-cause and recovery conclusions above remain unchanged. See the [October 18 report](2026-10-18-rac26-node2-root-script-vm-freeze.md).
+
 ## Outcome and lessons
 
 **Confirmed:** Node 2 was reported healthy after troubleshooting, with SELinux disabled.  

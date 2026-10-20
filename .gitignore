@@ -1,0 +1,28 @@
+# Secrets and keys (see Oracle-Database-Platform-Automation/phase-00-foundation/security-rules.md)
+*.pem
+*.ppk
+*.key
+id_rsa*
+id_ed25519*
+!*.pub
+cwallet.sso
+ewallet.p12
+*.p12
+*.jks
+.env
+
+# Terraform state and plans
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform/
+crash.log
+
+# Ansible
+*.retry
+vault-password*
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.swp

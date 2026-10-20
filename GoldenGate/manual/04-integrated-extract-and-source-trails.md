@@ -121,7 +121,43 @@ INFO EXTTRAIL *
 
 Verify supplemental logging separately after database login:
 
-text
+```text
+DBLOGIN USERIDALIAS gg_source DOMAIN OracleGoldenGate
+INFO TRANDATA HR.EMPLOYEES
+```
+
+Inspect trail storage through the **actual deployment data directory**, not an assumed default:
+
+```bash
+# OGG_DATA_HOME is documented for MA trail artifacts; ensure it is set correctly.
+printf 'Data home: %s\n' "$OGG_DATA_HOME"
+df -hT "$OGG_DATA_HOME"
+ls -lh "$OGG_DATA_HOME"
+```
+
+Oracle's default is `<deployment-location>/var/lib/data`, but deployments may use customized locations. Never mistake `$OGG_HOME` (installation home) for the trail data directory.
+
+With an approved isolated test table, commit controlled INSERT, UPDATE and DELETE operations. Record matching Extract stats, report, trail sequence/RBA and checkpoints. A source that has no committed matching DML can correctly show zero operations. **Source capture validation does not prove target delivery or apply.**
+
+## 9. Incident diagnostics
+
+| Symptom | Check | First response |
+|---|---|---|
+| Registration failure | Database service/container, capture privileges, exact error | Identify cause before retrying |
+| Extract ABENDED | Process report, error log, redo access, parameter syntax | Preserve log and recovery position |
+| RUNNING with zero output | Source commit, TABLE selection, capture state | Test controlled committed source DML |
+| No local trail | `EXTTRAIL` declaration/binding, path, disk permissions | Compare parameters to `INFO EXTTRAIL *` |
+| Trail grows but target does not | Distribution/Receiver/Replicat status | Investigate next pipeline boundary |
+| Increasing checkpoint lag | Long transactions, redo backlog, host/database resources | Inspect checkpoints and reports |
+| Trail sequence missing | Purge policy, retained files, consumer positions | Preserve state and plan supported recovery |
+
+Do not delete/re-register Extract, force a new capture position or remove trails merely to clear a process error. Such changes require a recovery and continuity plan.
+
+## 10. Lab results
+
+**Evidence pending:** Oracle documentation confirms the command forms below, but no command in this replacement was executed against a current 26ai deployment. Add sanitized results only after an actual lab run.
+
+```text
 Date/time and operator:
 Source Oracle release / CDB-PDB:
 GoldenGate release and deployment:
@@ -150,4 +186,4 @@ Source capture outcome: VERIFIED / FAILED / NOT TESTED
 - [INFO EXTTRAIL](https://docs.oracle.com/en/database/goldengate/core/26/gclir/info-exttrail.html)
 - [Deployment Directories](https://docs.oracle.com/en/database/goldengate/core/26/coredoc/deployment-directories.html)
 
-**Next:** [05 — Distribution and Receiver Services](05-distribution-and-receiver-services.md)
+**Next:** [05 — Distribution and Receiver Services](05-distribution-and-receiver-services.md).

@@ -1,6 +1,6 @@
 # Oracle Database Platform Engineering
 
-Oracle database engineering portfolio covering **migration, replication, backup and recovery, high availability, troubleshooting, and automation** across Oracle Cloud Infrastructure (OCI), Azure, and local VirtualBox environments.
+Oracle database lab portfolio focused on **migration and GoldenGate replication** across Oracle Cloud Infrastructure (OCI), Azure and local VirtualBox environments, with RAC, Data Guard and RMAN lab work and a DevOps automation project in progress.
 
 These are independent hands-on lab projects. The current goal is to bring the strongest existing Oracle DBA work into one repeatable, version-controlled **Oracle Database Platform Automation** platform using DevOps practices.
 
@@ -35,13 +35,13 @@ Oracle 19c / PRODBHR (Oracle Linux 7.9)
    -> Oracle AI Database 26ai / PDB23AI (Oracle Linux 9.8)
 ```
 
-**Engineering decision:** Run GoldenGate off-box on the newer Oracle Linux environment rather than install GoldenGate 26ai on the older source OS. Tested INSERT, UPDATE, DELETE, CREATE TABLE and DROP TABLE replication. Sanitized configuration and test output will be added to the project repository.
+**Engineering decision:** Run GoldenGate off-box on the newer Oracle Linux environment rather than install GoldenGate 26ai on the older source OS. Tested DML (INSERT, UPDATE, DELETE) and DDL (CREATE TABLE, DROP TABLE) replication. Sanitized configuration and test output will be added to the project repository.
 
 ### Migration 2 — Oracle 26ai On-Premises to OCI Migration & GoldenGate Replication
 
 [Implementation and rerun playbook](https://github.com/omoriwor-commits/enterprise-data-platform-labs/tree/main/migrations/oracle-26ai-to-oci-goldengate)
 
-Local Oracle 26ai (OL 9.8) → self-managed Oracle 26ai on OCI Compute (OL 9.8). I used **RMAN and Data Pump for the initial load**, then GoldenGate 26ai for CDC with **local capture at the source-side GoldenGate tier and remote apply to OCI**. INSERT, UPDATE, DELETE and DROP were tested.
+Local Oracle 26ai (OL 9.8) → self-managed Oracle 26ai on OCI Compute (OL 9.8). I used **RMAN and Data Pump for the initial load**, then GoldenGate 26ai for CDC with **local capture at the source-side GoldenGate tier and remote apply to OCI**. I tested DML (INSERT, UPDATE, DELETE) and DDL (CREATE TABLE, DROP TABLE) replication, and confirmed each change reached the OCI target.
 
 ```text
 LOCAL LAB / OL9.8                           OCI COMPUTE / OL9.8
@@ -79,13 +79,13 @@ Full and incremental backup, restore, and point-in-time recovery scenarios. Reus
 
 [Two-node RAC build and troubleshooting runbook](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/runbooks/oracle-rac/oracle19c-2node-rac-build-and-troubleshooting.md) — full Oracle 19c Grid, ASM and RAC database build, tested and reused.
 
-[Oracle 26ai two-node RAC build runbook (draft)](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/runbooks/oracle-rac/oracle26ai-2node-rac-build-runbook.md) — adapted from the tested 19c runbook; validation on Oracle Linux 9 is pending.
+[Oracle 26ai two-node RAC build runbook (draft)](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/runbooks/oracle-rac/oracle26ai-2node-rac-build-runbook.md) — two-node 26ai build and functional validation completed October 19, 2026; remaining configuration and compatibility checks are tracked in the runbook.
 
 [October 2026 node startup investigation](Oracle-Database-Platform-Automation/incident-reports/2026-10-rac-node2-startup-investigation.md)
 
-Cluster and operating-system troubleshooting across VirtualBox, Oracle Linux, Clusterware, and ASM. Node OS availability was restored; database and cluster-wide recovery checks are part of the next validation pass.
+The former 19c VMs were retired. The new 26ai cluster runs RAC1/RAC2 with RACPDB1 READ WRITE on both nodes. Functional validation includes archiving, SCAN connection distribution, new connections while RAC2 is stopped, and service restoration after restart. The SCAN availability test is user-confirmed; its raw transcript remains to be published. The older 19c incident retains its original, unconfirmed root cause.
 
-Operational code: [RAC health-check Python script](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/scripts/oracle-rac/rac_health_check.py). The [incident report](Oracle-Database-Platform-Automation/incident-reports/2026-10-rac-node2-startup-investigation.md) records the outstanding cluster-wide validation.
+Operational code: [RAC health-check Python script](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/scripts/oracle-rac/rac_health_check.py). Revision `2026-10-19.3` was live-tested as grid on October 19 at 10:46 CDT, collecting database and ASM checks with zero critical findings and four warnings. [Health evidence](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/evidence/oracle-rac/2026-10-19-rac26-health-check-v3.md) records alert-history and kernel/RU review items; HugePages remains unconfigured.
 
 ### Oracle Data Guard — health-check automation
 
@@ -120,7 +120,7 @@ Monitoring, validation, runbooks, and recovery testing
 | Oracle migrations and RMAN recovery | Completed lab work; evidence consolidation underway |
 | OCI–Azure VPN, Extract, and SQL connectivity | Completed and validated |
 | SQL Server Replicat end-to-end apply | Completed; final apply logs to be archived during rerun |
-| Oracle health-check automation | Data Guard Bash and RAC Python scripts published; validation in progress |
+| Oracle health-check automation | RAC Python revision 2026-10-19.3 live-tested on 26ai; Data Guard validation tracked separately |
 | RMAN automation and recovery controls | Planned integration |
 | Terraform / Ansible infrastructure automation | Planned |
 | Database CI/CD with GitHub Actions | Planned |
