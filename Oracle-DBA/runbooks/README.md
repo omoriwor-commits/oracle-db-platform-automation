@@ -10,6 +10,7 @@ Operational notes from my self-directed Oracle lab work, checked against my two-
 | [DBMS_SCHEDULER](dbms-scheduler.md) | Reference reviewed; runtime/calendar tests pending |
 | [Daily and weekly health checks](database-health-checks.md) | Partly automated in the RAC health-check script |
 | [Space management](space-management.md) | Reference reviewed; SQL and lab exercises to verify |
+| [Object DDL extraction](generate-object-ddl.md) | Reference reviewed; lab output validation pending |
 | [SQL Tuning Advisor](sql-tuning-advisor.md) | Planned exercise |
 
 Scripts: [`../scripts/rman/rman_backup.sh`](../scripts/rman/rman_backup.sh)
