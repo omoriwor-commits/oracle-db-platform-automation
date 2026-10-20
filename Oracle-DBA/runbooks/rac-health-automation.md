@@ -1,7 +1,7 @@
 # Automate the existing RAC health snapshot
 
 **Updated:** 2026-10-20.  
-**Status:** Implementation prepared; new runner tests and live cron validation not yet executed. No schedule has been activated by this change.
+**Status:** Eight runner tests passed and one manual RAC snapshot completed on racnode1 on 2026-10-20 (user-provided output). Racnode2 runner tests/manual validation and scheduled cron runs remain pending; no schedule has been activated by this change.
 
 ## What runs
 
@@ -26,20 +26,20 @@ No automatic restart, repair, account changes, backup deletion or external notif
 
 ## 1. Stage on both nodes as grid
 
-Keep the existing grid authorization; do not add DBA/ASM privileges to make reports green. Stage reviewed checkouts at these example paths:
+Keep the existing grid authorization; do not add DBA/ASM privileges to make reports green. Use the checkout and existing checker paths confirmed on racnode1; verify both paths on racnode2:
 
 | Repository | Local path |
 |---|---|
-| oracle-db-platform-automation | /home/grid/src/oracle-db-platform-automation |
-| enterprise-multicloud-database-platform-lab | /home/grid/src/enterprise-multicloud-database-platform-lab |
+| oracle-db-platform-automation | /home/grid/oracle-health-automation |
+| Existing validated RAC checker | /home/grid/scripts/rac_health_check.py |
 
 Use the feature branch for testing, or main after merge. The code and tests must be checked out together. Install nothing as root. Confirm /usr/bin/python3 exists, then inspect identity/paths:
 
 ```bash
 whoami
 /usr/bin/python3 --version
-ls -l /home/grid/src/oracle-db-platform-automation/Oracle-DBA/scripts/health/
-/usr/bin/python3 /home/grid/src/enterprise-multicloud-database-platform-lab/scripts/oracle-rac/rac_health_check.py --version
+ls -l /home/grid/oracle-health-automation/Oracle-DBA/scripts/health/
+/usr/bin/python3 /home/grid/scripts/rac_health_check.py --version
 ```
 
 The collector must report the reviewed revision. Review/pin any newer revision before activation. Use local storage, not NFS, for the output/lock directory.
@@ -49,18 +49,18 @@ The collector must report the reviewed revision. Review/pin any newer revision b
 These exercise real child-process exit handling, missing/mismatched reports, local lock exclusion, environment cleanup, file privacy, symlink rejection and retention scope:
 
 ```bash
-/usr/bin/python3 -m unittest discover -s /home/grid/src/oracle-db-platform-automation/Oracle-DBA/scripts/health -p 'test_*.py' -v
+/usr/bin/python3 -m unittest discover -s /home/grid/oracle-health-automation/Oracle-DBA/scripts/health -p 'test_*.py' -v
 ```
 
-Stop on test failure. These tests have not been run in this session because no usable execution environment is available.
+All eight tests passed on racnode1 in 0.656 seconds on 2026-10-20, as shown in the supplied terminal output. Repeat on racnode2; stop on test failure. These are fake-collector tests, not Oracle availability tests.
 
 ## 3. One manual snapshot on each node
 
 As grid, on racnode1 and then racnode2:
 
 ```bash
-/usr/bin/python3 /home/grid/src/oracle-db-platform-automation/Oracle-DBA/scripts/health/run_rac_health.py \
-  --checker /home/grid/src/enterprise-multicloud-database-platform-lab/scripts/oracle-rac/rac_health_check.py \
+/usr/bin/python3 /home/grid/oracle-health-automation/Oracle-DBA/scripts/health/run_rac_health.py \
+  --checker /home/grid/scripts/rac_health_check.py \
   --output-dir /home/grid/.local/state/oracle-health
 echo "runner_exit=$?"
 ```
@@ -91,13 +91,13 @@ If no crontab exists, crontab -l can return a nonzero status; do not overwrite u
 Add **one** entry on racnode1:
 
 ```cron
-0,15,30,45 * * * * umask 077; /usr/bin/python3 /home/grid/src/oracle-db-platform-automation/Oracle-DBA/scripts/health/run_rac_health.py --checker /home/grid/src/enterprise-multicloud-database-platform-lab/scripts/oracle-rac/rac_health_check.py --output-dir /home/grid/.local/state/oracle-health > /home/grid/.local/state/oracle-health/cron-last.log 2>&1
+0,15,30,45 * * * * umask 077; /usr/bin/python3 /home/grid/oracle-health-automation/Oracle-DBA/scripts/health/run_rac_health.py --checker /home/grid/scripts/rac_health_check.py --output-dir /home/grid/.local/state/oracle-health > /home/grid/.local/state/oracle-health/cron-last.log 2>&1
 ```
 
 Add **one** entry on racnode2, staggered seven minutes:
 
 ```cron
-7,22,37,52 * * * * umask 077; /usr/bin/python3 /home/grid/src/oracle-db-platform-automation/Oracle-DBA/scripts/health/run_rac_health.py --checker /home/grid/src/enterprise-multicloud-database-platform-lab/scripts/oracle-rac/rac_health_check.py --output-dir /home/grid/.local/state/oracle-health > /home/grid/.local/state/oracle-health/cron-last.log 2>&1
+7,22,37,52 * * * * umask 077; /usr/bin/python3 /home/grid/oracle-health-automation/Oracle-DBA/scripts/health/run_rac_health.py --checker /home/grid/scripts/rac_health_check.py --output-dir /home/grid/.local/state/oracle-health > /home/grid/.local/state/oracle-health/cron-last.log 2>&1
 ```
 
 The private directory must already exist from the manual run. cron-last.log contains only the latest trigger's launcher output; detailed snapshots are separately retained. No mail configuration is assumed. Monitor disk use; retention is age-based, not a hard size cap.
@@ -108,8 +108,33 @@ After each node's next interval, verify a new completed last-run.json, fresh per
 
 Review last-run.json freshness as well as exit status. A suggested local review threshold is no completed result in 30 minutes, but this is not implemented alerting. Cron daemon, host outages and launch-before-script failures require separate monitoring.
 
-Record test results, node, runner/checker commit hashes, schedule and sanitized manual/cron results before changing this status to Verified. Do not publish raw alert excerpts or internal identifiers without review.
+Record node, runner/checker commit hashes, schedule and sanitized manual/cron results. Racnode1 tests/manual output are recorded below; retain Pending for racnode2 and cron until observed. Do not publish raw alert excerpts or internal identifiers without review.
 
 Rollback: remove/comment only these health entries with crontab -e on each node. Preserve reports. Removing a schedule does not terminate an active collector; inspect it separately.
 
 References: [Python flock](https://docs.python.org/3/library/fcntl.html), [Oracle JOB_QUEUE_PROCESSES](https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/JOB_QUEUE_PROCESSES.html).
+
+## Observed validation: racnode1, 2026-10-20
+
+Evidence supplied by the user in this conversation; summarized without raw alert excerpts:
+
+| Check | Observed result |
+|---|---|
+| Runner tests | All 8 passed in 0.656 seconds |
+| Manual snapshot | 16:25:06–16:26:00 America/Chicago; about 53 seconds |
+| Exit handling | Checker 1, runner 1, final status WARNING |
+| Output | Unique log/JSON filenames and completed last-run.json recorded |
+| Checker SHA-256 | 0f1d1f78fb839ceaeb017cdcfb12b10fdb3e397e1c73907379f2cc248d08d954 |
+| Collection | Both OS nodes, Clusterware, database SQL/services and ASM collected; alert sample local to racnode1 |
+| Findings | 0 critical, 4 warnings; not an all-clear |
+| ASM | DATA/FRA/OCR mounted on both instances; listed disks ONLINE/NORMAL |
+| Remaining validation | Racnode2 tests/manual collection, both-node cron operation and freshness |
+
+Warnings to retain and investigate:
+- RAC1 recorded a new ORA-29770 LMON no-progress event at 08:15:21 CDT on October 20. This is distinct from the October 19 ASM history. Current OPEN instances do not explain the earlier hang; correlate the alert, LMHB incident trace and host timeline. Root cause is not established.
+- Three undated seed-datafile error lines need surrounding context; the sample reports zero future timestamps. This alone does not prove clock drift or a current missing datafile.
+- One compatibility warning per node: reported 23.26.1 runtime with OL9 UEK8, with the checker flagging documented support from RU 23.26.2. Existing compatibility work remains open.
+
+Node 2's SELinux troubleshooting processes briefly used up to 94.3% of one core in the sample. No paging was observed during sampled intervals. Neither observation establishes the hang's cause. Do not suppress these findings to obtain exit 0.
+
+No cron execution, notification delivery, failover or restore result is established by this manual snapshot.

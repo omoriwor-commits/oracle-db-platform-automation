@@ -8,7 +8,7 @@ Operational notes from my self-directed Oracle lab work, checked against my two-
 | [OCR, OLR and voting files](ocr-olr-administration.md) | Draft; log locations confirmed, commands to verify |
 | [RMAN backup automation](rman-backup-automation.md) | Draft; script written, first run to do |
 | [DBMS_SCHEDULER](dbms-scheduler.md) | Reference reviewed; runtime/calendar tests pending |
-| [Daily and weekly health checks](database-health-checks.md) | Collector validated; scheduled runner prepared, live test pending |
+| [Daily and weekly health checks](database-health-checks.md) | Runner tests/manual collection validated on racnode1; racnode2/cron pending |
 | [Space management](space-management.md) | Reference reviewed; SQL and lab exercises to verify |
 | [SQL Tuning Advisor](sql-tuning-advisor.md) | Planned exercise |
 
