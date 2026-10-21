@@ -1,7 +1,7 @@
 # RMAN Backup Automation on a Two-Node RAC
 
-**Last updated:** 2026-10-19
-**Status:** Draft. The script passes a bash syntax check; it has not yet been run against my 26ai RAC lab. Steps marked **Verify** are still to do.
+**Last updated:** 2026-10-21
+**Status:** Draft. The launcher has failure-injection tests using fake Oracle tools; live backup and restore validation on the 26ai RAC lab remain pending. Steps marked **Verify** are still to do.
 
 Script: [`scripts/rman/rman_backup.sh`](../scripts/rman/rman_backup.sh)
 
@@ -12,10 +12,10 @@ Script: [`scripts/rman/rman_backup.sh`](../scripts/rman/rman_backup.sh)
 | Back up to the Fast Recovery Area (`+FRA`, shared ASM) | Either node can restore. A backup on one node's local disk can't be used from the other. |
 | Weekly incremental level 0, daily level 1, archivelogs every 4 hours | Less load than daily full backups; block change tracking keeps level 1 fast. |
 | Retention, compression, parallelism and deletion policy set once with `CONFIGURE` | The script stays short, and `SHOW ALL` documents the policy. |
-| Archivelog deletion policy instead of `DELETE INPUT` | Archivelogs are only removed once backed up; a standby or GoldenGate Extract would otherwise lose logs it still needs. |
-| `DELETE OBSOLETE` after the backup succeeds | Never remove old backups before a new one exists. |
+| No deletion by default | Review recovery retention and actual Data Guard/GoldenGate consumers before enabling cleanup. A backup count alone does not prove downstream consumption. |
+| Opt-in `--cleanup` in a separate RMAN invocation after backup success | Failed backup commands cannot enter the cleanup stage. Review `REPORT OBSOLETE` first. |
 | Error check on RMAN's exit code and the `RMAN-00569` error-stack banner in the log | Catches failed commands without treating informational `RMAN-08xxx` warnings as failures. |
-| `flock` lock, instance check, syslog messages, log cleanup | One backup at a time, a clear failure when the local instance is down, and a trail outside the log file. |
+| Private local lock/logs and SQL identity checks | Exclude overlapping runs on one host; confirm the expected database, SID and open mode. Cross-node exclusion is not implemented. |
 
 ## One-time setup
 
@@ -45,7 +45,7 @@ SELECT status, filename FROM v$block_change_tracking;
 ```bash
 mkdir -p /home/oracle/rman
 chmod 750 /home/oracle/rman/rman_backup.sh
-/home/oracle/rman/rman_backup.sh 0; echo "exit=$?"
+RMAN_SID=RAC1 /home/oracle/rman/rman_backup.sh 0; echo "exit=$?"
 ```
 
 Exit codes: 0 success, 1 RMAN errors, 2 local instance not open, 3 usage, 4 another backup already running.
@@ -65,9 +65,9 @@ EOF
 ## Schedule (oracle's crontab on racnode1)
 
 ```text
-0 1 * * 0    /home/oracle/rman/rman_backup.sh 0
-0 1 * * 1-6  /home/oracle/rman/rman_backup.sh 1
-30 */4 * * * /home/oracle/rman/rman_backup.sh arch
+0 1 * * 0    RMAN_SID=RAC1 /home/oracle/rman/rman_backup.sh 0
+0 1 * * 1-6  RMAN_SID=RAC1 /home/oracle/rman/rman_backup.sh 1
+30 */4 * * * RMAN_SID=RAC1 /home/oracle/rman/rman_backup.sh arch
 ```
 
 ## Monitoring
@@ -85,7 +85,7 @@ My FRA is 25 GB on a 30 GB disk group. Check usage after the first week.
 
 ## Known limits
 
-- The cron entries are on racnode1 only. If node 1 is down, the script exits with code 2 and no backup runs. A next step is to schedule on both nodes, or connect through a dedicated backup service.
+- Cron runs on racnode1 only. A down host cannot launch cron and produces no script exit code. Use external freshness monitoring. Do not schedule both nodes until cluster-wide coordination is implemented; the lock is local. If the host is up but the selected instance or identity check fails, the launcher returns 2.
 - Basic compression costs CPU on 2-vCPU VMs. Watch backup duration.
 
 ## Common mistakes in simple backup scripts
@@ -96,3 +96,14 @@ My FRA is 25 GB on a 30 GB disk group. Check usage after the first week.
 - Using `%u` alone in the format string; `%U` is unique per piece.
 - Twice-daily full backups instead of incremental levels.
 - Scheduled scripts that prompt for passwords (`rman target sys@db`). Use OS authentication or a wallet.
+
+
+## Cleanup and validation gates
+
+Backups run without deletion by default. `--cleanup` is a separate, explicit opt-in after successful backup execution; it runs `DELETE NOPROMPT OBSOLETE`. Oracle documents that this command determines obsolescence from the backup retention policy, not the archived-log deletion policy. Do not rely on `BACKED UP 1 TIMES` to protect every downstream consumer. Review `REPORT OBSOLETE`, capture/standby requirements and restore objectives before choosing a policy. The setup example is for this lab, not a universal Data Guard or GoldenGate policy.
+
+Logs and the local lock are kept in a user-owned 0700 directory; logs use 0600. No automatic log deletion is performed. Set `RMAN_LOG_DIR`, `RMAN_DB_UNIQUE_NAME`, `RMAN_SID` and `ORACLE_HOME` for another approved lab. Backup storage in shared ASM remains in the cluster failure domain; an independent backup copy and a real restore/recovery exercise are still needed.
+
+Local tests: `python3 -m unittest discover -s Oracle-DBA/scripts/rman/tests -v`. These prove orchestration behavior, not Oracle backup or recovery. Live acceptance remains: retain SHOW ALL, level-0 output, restore validation, an isolated restore/recovery result and a freshness test.
+
+Oracle references: [DELETE](https://docs.oracle.com/en/database/oracle/oracle-database/26/rcmrf/DELETE.html), [RMAN command sequencing](https://docs.oracle.com/en/database/oracle/oracle-database/26/bradv/managing-recovery-catalog.html).
