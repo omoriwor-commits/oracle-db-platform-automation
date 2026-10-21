@@ -26,7 +26,7 @@ for binary in rman sqlplus srvctl; do
   [ -x "$ORACLE_HOME/bin/$binary" ] || { echo "Missing Oracle tool: $binary" >&2; exit 2; }
 done
 case "$LOGDIR" in /*) ;; *) echo "RMAN_LOG_DIR must be absolute" >&2; exit 2;; esac
-if [ -L "$LOGDIR" ] || ! mkdir -p -m 700 "$LOGDIR" || [ ! -O "$LOGDIR" ] ||
+if [ -L "$LOGDIR" ] || ! mkdir -p "$LOGDIR" || [ ! -O "$LOGDIR" ] ||
    [ "$(stat -c %a "$LOGDIR")" != 700 ]; then
   echo "Log directory must be owned by this user, mode 0700, and not a symlink" >&2; exit 2
 fi
