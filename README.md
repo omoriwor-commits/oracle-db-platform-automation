@@ -151,3 +151,8 @@ The [Oracle Database Engineering Knowledge Base](KNOWLEDGE-BASE.md) organizes re
 ## Publication practice
 
 Code, configuration examples, logs, and screenshots are sanitized before publication. Sensitive credentials, private keys, wallet files, and confidential data must not be committed.
+
+
+## Current repository controls
+
+Repository checks run Python regression tests, shell validation, YAML/local-link checks and Gitleaks scans. These source checks are separate from database schema deployment, live availability and restore tests. [Open live-validation gates](Oracle-Database-Platform-Automation/validation/pending-live-validation.md) track patch/LMON investigation, migration/recovery evidence and the draft scheduling rollout.
