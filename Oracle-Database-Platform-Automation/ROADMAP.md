@@ -1,8 +1,8 @@
 # Oracle Database Platform — Master Roadmap
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Status:** Baseline / controlling roadmap  
-**Target role:** Oracle Database Automation / Platform Engineer
+**Target roles:** Database Migration Engineer / Cloud Database Engineer / Database Platform Engineer / Replication & CDC Engineer / Database Reliability Engineer (selective) / Cloud Infrastructure Engineer (selective)
 
 > **Guiding question for every phase:**  
 > How does this help me provision, operate, secure, recover, monitor, or automate a database platform?
@@ -16,45 +16,52 @@ This section is the single controlling execution order; README.md links here
 rather than repeating it. Pacing is by competency: a stage is complete only when its
 **Done when** criteria are met and evidence is committed.
 
-### Stage 1 — Core Platform v1 (target: ~8 weeks)
+### Execution strategy — OCI and AWS as parallel cloud tracks
 
-| Order | Target week | Work | Phase | Status |
+**One project, one roadmap.** OCI is the Oracle/GoldenGate platform engineering track; AWS is the complementary database modernization track. The tracks advance in parallel after Phase 0 controls, rather than delaying AWS until Phase 12. Azure remains the already completed, historically documented GoldenGate-to-SQL Server integration target, not a third new infrastructure build priority.
+
+**Evidence boundary:** Prior independent Oracle/OCI/Azure implementations and 2023 EC2/RDS Oracle practice remain completed/user-confirmed work as recorded in their own repositories. Terraform, Ansible, database-specific CI/CD, DMS, schema conversion, Aurora PostgreSQL and newly automated recovery/migration workflows are planned until tested. The separate NGINX DevOps repository documents completed Docker/Kubernetes/GitHub Actions application CI/CD; it does not establish database CI/CD completion.
+
+### Stage 1 — Shared controls and initial parallel workstreams (sequenced by competency, ~8-week planning target)
+
+| Order | Workstream | Delivery target | Phase | Current status |
 |---|---|---|---|---|
-| 1 | 1 | Close Phase 0: protect `main`, budget alerts, lab inventory, security/naming/documentation standards (repo rename done Oct 2026) | 0 | In progress |
-| 2 | 1 | Maintain completed 26ai RAC build/functional-validation evidence; resolve compatibility and hardening follow-ups. Preserve the retired 19c incident separately with its unconfirmed root cause | 10B | Build and functional validation complete; follow-ups in progress |
-| 3 | 2 | Extend existing Oracle health checks with scheduling, retained evidence and automated quality checks; all work via PRs | 1–2 | RAC Python 2026-10-19.3 live-tested; scheduling/integration and Data Guard validation tracked separately |
-| 4 | 3–4 | Rebuild GoldenGate 26ai pipeline (OCI Oracle → Azure SQL Server): DML, row-count validation, lag, restart | 11 | Planned |
-| 5 | 5 | Terraform OCI VCN + compute modules; remote state in Object Storage; clean apply/destroy | 4–5 | Planned |
-| 6 | 6 | Ansible configures the fresh server and installs Oracle with no manual steps; idempotent rerun | 6 | Planned |
-| 7 | 7 | GitHub Actions: ShellCheck, `terraform validate` + TFLint, ansible-lint on every PR | 3 (partial) | Planned |
-| 8 | 8 | Grafana dashboard (availability, tablespace, backup status); 5-minute recorded demo | 9A (partial), 12 (partial) | Planned |
+| 1 | Shared foundation | Protect main; inventory local/cloud resources; establish OCI/AWS budgets, IAM/secret hygiene, cost/teardown, branch/PR rules and acceptance templates | 0, 2 | In progress |
+| 2 | Oracle reliability | Preserve 26ai RAC functional results, close compatibility/hardening Verify items, retain warnings and historical incident evidence | 10B, 1 | Functional build completed; follow-ups open |
+| 3 | Shared quality tooling | Schedule existing RAC/Data Guard checks; store dated results; PR checks with ShellCheck/Python tests/SQL checks | 1–3 (partial) | Scripts exist; integration/validation ongoing |
+| 4A | OCI infrastructure | Terraform modules for VCN, secure subnet, compute/storage, remote state and reproducible apply/destroy; use Ansible when provisioning is verified | 4–6 | Planned |
+| 4B | AWS infrastructure | Terraform VPC, private database subnet/network policy, IAM/KMS/Secrets Manager and cost-controlled PostgreSQL target; reproducible apply/destroy | AWS extension, 5 | Planned |
+| 5A | OCI replication | Rebuild Oracle 26ai → Azure GoldenGate → SQL Server 2022 as cost permits; publish end-to-end DML, lag, restart and reconciliation evidence | 11 | Previous independent implementation complete; automated rebuild planned |
+| 5B | AWS modernization | Source Oracle 19c inventory; schema assessment/conversion; AWS DMS Full Load + CDC into PostgreSQL; document incompatible objects and supported methods | AWS extension | Planned; DMS/schema conversion not yet implemented |
+| 6 | Shared database delivery | GitHub Actions gates; Oracle SQLcl/Liquibase and PostgreSQL migrations where compatible; explicit test/approval/rollback and separated secrets | 3 | Planned; NGINX application pipeline already completed elsewhere |
+| 7 | Reliability and security | OCI Prometheus/Grafana and AWS CloudWatch checks; restore/cutover rehearsal, DMS lag/GoldenGate lag, least privilege, alert evidence and RCA | 9, AWS extension | Planned |
+| 8 | Portfolio integration | Cross-platform validation matrix, architecture decisions, sanitized logs, demo and role-specific evidence map | 12 | Planned |
 
-**Stage 1 done when:** a new OCI server can be provisioned, configured and
-health-checked from this repository, every PR runs the pipeline, the
-GoldenGate pipeline has published evidence, and a recorded demo exists.
+The workstreams **4A/4B and 5A/5B are parallel, not assertions of simultaneous paid cloud deployments**. Start with infrastructure plans and local/short-lived tests; avoid recurring cost. If funding or quotas block a cloud component, document it as blocked, not completed.
 
-### Stage 2 — Platform Operations
+**Stage 1 acceptance:** Both OCI and AWS have reviewed architectures and cost/security guardrails, with at least one reproducible infrastructure deployment per cloud before marking that track implemented. Each migration track is separately accepted only after source/target validation, CDC behavior, interruption/recovery and captured evidence. Stage 1 planning dates are targets, not historical accomplishments.
 
-1. Database CI/CD with SQLcl Liquibase and an ephemeral Oracle Database Free test database (Phase 3, full)
-2. RMAN automated restore testing and recovery reports (Phase 9C)
-3. Security hardening and secrets via Vault (Phase 9B)
-4. Data Guard automation, switchover and failover tests (Phase 10A)
-5. Rerun and document migrations 1 and 2: 19c → 26ai and on-premises → OCI (Phase 11)
+### Stage 2 — Operational depth
 
-### Stage 3 — Containers and Integration
+1. Complete Oracle SQLcl/Liquibase database CI/CD, plus PostgreSQL schema-change validation and controlled promotion.
+2. Automate RMAN restore/validation and capture recovery reports; preserve Oracle Data Guard work.
+3. Harden IAM, network paths, TLS, database privileges, KMS and protected secrets; test negative access cases.
+4. Validate Data Guard switchover/failover and Oracle RAC node/service interruption after resolving open Verify items.
+5. Prove AWS migration reconciliation, cutover/rollback and DMS failure/restart behavior; document CDC limitations.
+6. Re-run older Oracle migrations only when evidence gaps or required automation justify the cost.
 
-1. Docker: Oracle Database Free container, Trivy scanning (Phase 7)
-2. Kubernetes + Helm for supporting services (Phase 8)
-3. Integrated capstone: full rebuild from runbooks, final architecture, demo (Phase 12)
+### Stage 3 — Containers and integration
 
-### Stage 4 — Extensions (only after Phase 12)
+1. Reuse demonstrated NGINX GitHub Actions/Docker/Kubernetes skills; independently implement database test containers, scan images and record new proof.
+2. Add Helm/Kubernetes for supporting services where relevant, rather than forcing RAC or Aurora into Kubernetes.
+3. Produce an integrated, reproducible platform demonstration with separate OCI and AWS tracks, operational runbooks and role-specific evidence.
 
-AWS extension, then Phase II advanced platform engineering and agentic AI.
+### Stage 4 — Optional advanced extensions (after core acceptance)
 
-**Certifications:** OCI Architect Associate after Stage 1 week 5;
-HashiCorp Terraform Associate after Stage 1.
+Broader architecture, more heterogeneous sources/targets, deeper SRE security controls and advanced AI automation. **AWS is no longer held until Stage 4**; its core database modernization scope is moved to Stage 1 and Stage 2 alongside OCI.
 
-**Learning baseline:** Coding Macaw AI-Powered DevOps syllabus (Linux, Git/GitHub, CI/CD, AWS, Terraform, Azure, Docker, Kubernetes, Ansible, SRE, DevSecOps), applied to database platform engineering.
+**Certifications:** OCI Architect Associate and Terraform Associate remain optional study goals, not credentials held or required project milestones.
+
 
 ---
 
@@ -127,7 +134,7 @@ The pipeline should provision an ephemeral Oracle Database Free test database lo
 
 ## Phase 4 — Cloud
 
-**Focus:** OCI as the primary cloud: IAM, VCN, subnets, routing, NSGs/security, compute, storage, and OCI database architecture. AWS is supporting knowledge. Azure is retained for the existing environment and Phase 11.
+**Focus:** OCI and AWS are co-priority cloud tracks. OCI: IAM, VCN, subnets, NSGs, routing, compute/storage and Oracle database architecture. AWS: IAM, VPC, private database subnets, EC2/RDS or Aurora PostgreSQL target selection, database connectivity and cost controls. Azure is retained as the previous GoldenGate/SQL Server replication target, not a new full-scale build priority.
 
 **Certification objective:** OCI Architect Associate at the end of Phase 4 or Phase 5, after building the components hands-on.
 
@@ -135,18 +142,18 @@ The pipeline should provision an ephemeral Oracle Database Free test database lo
 - A VCN with public/private subnets, controlled administrative access, and NSGs is built manually in OCI.
 - IAM policies follow least privilege.
 - The design is documented with an architecture diagram explaining each choice.
-- Equivalent AWS concepts can be explained, including VPC, security groups, and IAM.
+- A separate AWS VPC/private subnet/security group/IAM design is implemented and tested before claiming AWS deployment completion; architecture knowledge alone is documented as conceptual.
 
 ---
 
 ## Phase 5 — Terraform
 
-**Focus:** Infrastructure as code using the OCI provider: VCN/subnets/security, compute/storage, variables/outputs, remote state, reusable modules, dev/test environments, validation, and security scanning.
+**Focus:** Infrastructure as code with OCI and AWS providers: VCN/VPC, subnets/security, compute and database targets, variables/outputs, separate protected state per cloud/environment, reusable modules, validation, cost controls and security scanning.
 
 ### Done when
 - `terraform apply` builds the dev environment from a clean starting point.
 - `terraform destroy` removes disposable resources cleanly.
-- Terraform state is stored remotely in OCI Object Storage using the appropriate OCI backend with locking and bucket versioning enabled.
+- Terraform state is stored securely per environment/provider with documented backend configuration, locking where supported, encryption, restricted access and recovery/versioning. Verify backend-specific locking and retention behavior before asserting it.
 - Terraform state and plan artifacts containing sensitive information are excluded from Git.
 - Network and compute are implemented as reusable modules.
 - TFLint and an IaC security scanner such as Checkov run in the pipeline.
@@ -266,6 +273,25 @@ Validate INSERT, UPDATE, DELETE, DDL where appropriate, lag monitoring, failure/
 - Checkpoint/recovery behavior is understood and documented.
 - Replication lag is monitored and visualized.
 - Architecture, validation steps, troubleshooting, and recovery procedures are documented.
+
+---
+
+## AWS modernization workstream — co-priority with OCI
+
+**Existing baseline:** The 2023 independent Oracle 19c → EC2 → RDS for Oracle work is documented in `AWS/runbooks/oracle-19c-aws-migration-2023.md`. Original historical execution logs for each alternative were not supplied; do not retroactively claim AWS DMS, Aurora or Terraform.
+
+**New scope (planned):** Inventory Oracle 19c source/redo and network prerequisites; compare RDS PostgreSQL vs Aurora PostgreSQL cost/fit; use an AWS-supported schema assessment/conversion workflow; remediate unsupported SQL/PLSQL; load via AWS DMS and then validate CDC. Terraform provision networks/IAM/target; monitor DMS/task and database metrics in CloudWatch; document recovery, data validation, cutover and rollback.
+
+### AWS acceptance gates
+- [ ] Architecture, target choice, pricing/quotas, secure networking and rollback plan recorded before provisioning.
+- [ ] Terraform AWS apply/validate/destroy results published with secret-safe logs.
+- [ ] Schema conversion assessment, incompatibility list and functional validation captured.
+- [ ] DMS Full Load + CDC insert/update/delete, SCN/log prerequisites and task lag demonstrated.
+- [ ] Source/target counts, key aggregates and sampled transactions reconciled at a defined consistency point.
+- [ ] Interruption/restart, CDC convergence, cutover and rollback rehearsal measured and documented.
+- [ ] CloudWatch alerts, access restrictions, key/secret handling, and actual costs/teardown recorded.
+
+Do not treat a plan, a service console screenshot or a successful DMS task state as proof of database/application correctness.
 
 ---
 

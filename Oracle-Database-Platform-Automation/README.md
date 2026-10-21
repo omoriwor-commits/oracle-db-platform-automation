@@ -42,7 +42,8 @@ Cross-cutting: GitHub Actions | Terraform | Ansible | Security
                Prometheus/Grafana | Backup/Recovery | Runbooks
 
 Local supporting lab: Oracle RAC / ASM
-Future extensions: AWS, then advanced AI automation
+Parallel core track: AWS database modernization (Terraform + schema conversion + DMS Full Load/CDC + PostgreSQL)
+Advanced extension: AI automation
 ```
 
 **Status:** The pipeline shown was completed in my earlier lab. Within this project it will be rebuilt with Terraform, Ansible and CI/CD.
@@ -65,7 +66,7 @@ Future extensions: AWS, then advanced AI automation
 | 10B | RAC / ASM | Local cluster/storage lab, node-failure and recovery tests |
 | 11 | GoldenGate | Oracle 26ai → SQL Server 2022 one-way heterogeneous CDC, validated |
 | 12 | Integrated platform | Demonstration, runbooks, architecture, tests and portfolio evidence |
-| Extension | AWS | VPC, IAM, EC2, Oracle/RDS evaluation, CloudWatch, Terraform |
+| Co-priority cloud track | AWS | Oracle 19c modernization to PostgreSQL using Terraform, schema assessment/conversion, DMS Full Load + CDC, validation, CloudWatch and cutover/recovery tests (planned) |
 | Advanced | Agentic AI | Guardrailed diagnostics and operational automation |
 
 **Phase numbers describe the syllabus, not a rigid execution order.**
