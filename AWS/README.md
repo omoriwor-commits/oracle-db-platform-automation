@@ -1,8 +1,8 @@
 # AWS
 
-AWS is a **planned Stage 4 extension** of [Oracle Database Platform Automation](../Oracle-Database-Platform-Automation/ROADMAP.md). No Stage 4 implementation or build evidence has been added to this project yet.
+AWS is a **co-priority planned cloud implementation track alongside OCI** of [Oracle Database Platform Automation](../Oracle-Database-Platform-Automation/ROADMAP.md). New AWS modernization implementation evidence has not yet been added to this project. Historical Oracle EC2/RDS migration practice is separately documented.
 
-The planned scope includes VPC networking, IAM, EC2, RDS for Oracle evaluation, CloudWatch and Terraform.
+The planned scope includes Terraform-based VPC/private subnets/IAM/KMS/secrets, RDS/Aurora PostgreSQL target evaluation, Oracle schema assessment/conversion, AWS DMS Full Load + CDC, data reconciliation, CloudWatch, failure/restart and cutover/rollback tests. Keep prior EC2/RDS for Oracle experience distinct.
 
 ## Earlier Oracle migration experience
 
