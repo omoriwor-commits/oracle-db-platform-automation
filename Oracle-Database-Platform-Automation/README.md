@@ -71,6 +71,10 @@ Advanced extension: AI automation
 
 **Phase numbers describe the syllabus, not a rigid execution order.**
 
+## AWS migration readiness documentation
+
+The [AWS index](../AWS/README.md) links the proposed RDS PostgreSQL target decision, schema-conversion/DMS implementation runbook, acceptance matrix and Terraform/security/cost checklist. **All are preparatory documents; no new AWS DMS, SCT, Aurora or Terraform deployment is validated.** Existing 2023 EC2/RDS Oracle experience remains historical independent work.
+
 ## Execution order
 
 The build order, stage targets and status live in one place: [ROADMAP.md, Execution Order](ROADMAP.md#execution-order-controlling). Phase 0 work is in [phase-00-foundation](phase-00-foundation/README.md).
