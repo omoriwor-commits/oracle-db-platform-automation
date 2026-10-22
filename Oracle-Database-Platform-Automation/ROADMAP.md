@@ -22,6 +22,10 @@ rather than repeating it. Pacing is by competency: a stage is complete only when
 
 **Evidence boundary:** Prior independent Oracle/OCI/Azure implementations and 2023 EC2/RDS Oracle practice remain completed/user-confirmed work as recorded in their own repositories. Terraform, Ansible, database-specific CI/CD, DMS, schema conversion, Aurora PostgreSQL and newly automated recovery/migration workflows are planned until tested. The separate NGINX DevOps repository documents completed Docker/Kubernetes/GitHub Actions application CI/CD; it does not establish database CI/CD completion.
 
+### AWS modernization implementation artifacts (proposed; not executed)
+
+The initial target recommendation is **Amazon RDS for PostgreSQL**, subject to cost, supported-version and conversion-tool verification. **Aurora PostgreSQL** remains an optional extension. Current execution materials are: [target ADR](../AWS/architecture/ADR-001-postgresql-target.md), [DMS and schema-conversion runbook](../AWS/runbooks/oracle-to-postgresql-dms-sct-implementation.md), [acceptance matrix](../AWS/validation/aws-migration-acceptance-matrix.md), and [infrastructure/security/cost checklist](../AWS/runbooks/aws-infrastructure-security-cost-readiness.md). Schema assessment may use AWS SCT or DMS Schema Conversion only after verifying current support for the selected engine pair. The documentation does not establish deployed resources or completed tasks.
+
 ### Stage 1 — Shared controls and initial parallel workstreams (sequenced by competency, ~8-week planning target)
 
 | Order | Workstream | Delivery target | Phase | Current status |
