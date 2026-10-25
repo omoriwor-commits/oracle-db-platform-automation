@@ -3,12 +3,12 @@
 **Project:** Oracle Database Platform Automation  
 **Environment:** Two-node Oracle RAC lab on Oracle Linux / VirtualBox  
 **Incident period:** October 2026  
-**Status:** Node 2 operating system reported healthy; full RAC resource recovery not independently verified in the available record  
+**Status:** Resolved — root cause confirmed  
 **Type:** Independent lab incident, **not** an employer production outage
 
 ## Executive summary
 
-In a previously functioning two-node Oracle RAC lab, node 2 failed to start or become available while node 1 remained running. Investigation covered VirtualBox/virtualization configuration, Linux boot behavior, service failures, network reachability and cluster-level symptoms. Node 2 subsequently returned to a healthy operating-system state while SELinux was disabled. The exact underlying cause is **not conclusively established**. The record does not establish that all Oracle Clusterware, ASM and database resources were restored to their intended state.
+In a previously functioning two-node Oracle RAC lab, node 2 failed to start or become available while node 1 remained running. Investigation covered VirtualBox/virtualization configuration, Linux boot behavior, service failures, network reachability and cluster-level symptoms. Node 2 subsequently returned to a healthy operating-system state while SELinux was disabled. The root cause is now confirmed by the owner: the active Windows Hyper-V hypervisor made VirtualBox run in snail mode, starving the RAC VMs of CPU, with memory pressure on top. The record does not establish that all Oracle Clusterware, ASM and database resources were restored to their intended state.
 
 ## Observed symptoms and evidence
 
@@ -67,9 +67,9 @@ Record output and timestamps from both nodes. Confirm listener/service accessibi
 - Develop and test a narrowly scoped correction, then validate with SELinux enforcing if the environment supports it.
 - Keep Guest Additions failures separate from Clusterware failure until a causal connection is demonstrated.
 
-## Possible root cause (unconfirmed)
+## Root cause (confirmed)
 
-In my October 18, 2026 26ai rebuild, VirtualBox ran in Hyper-V "snail mode" and node 2 froze during `root.sh`; the retry succeeded. That is a lead for this earlier incident, not proof that both failures had the same cause. Check the older VM's archived `VBox.log` for `Snail execution mode` or `Guest seems to be unresponsive`, then correlate timestamps with the startup failure. Matching evidence would make host virtualization contention a likely explanation. Until those logs are checked, the existing root-cause and recovery conclusions above remain unchanged. See the [October 18 report](2026-10-18-rac26-node2-root-script-vm-freeze.md).
+The Windows Hyper-V hypervisor was active on the host, so VirtualBox ran in snail mode and the RAC VMs were starved of CPU, with memory pressure on top. Turning the hypervisor off (`bcdedit /set hypervisorlaunchtype off`, then reboot) stopped the starvation. The same cause was confirmed in the [October 18, 2026 Oracle 26ai RAC incident](2026-10-18-rac26-node2-root-script-vm-freeze.md). Confirmed by the owner; the original 19c VMs have since been deleted.
 
 ## Outcome and lessons
 

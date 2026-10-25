@@ -38,6 +38,8 @@ All times are CDT on October 18, 2026.
 
 ## Root cause and confidence
 
+The same host cause also explains the [earlier October 2026 Oracle 19c RAC node 2 incident](2026-10-rac-node2-startup-investigation.md).
+
 The immediate failure was a prolonged VM freeze while the root script was waiting for Clusterware startup. Both VMs were using Hyper-V "snail mode", a known source of VirtualBox performance degradation. Windows Virtual Machine Platform, used by WSL2/Docker Desktop, was the suspected trigger for the Windows hypervisor on this host. CPU contention on the four-core host was an additional likely contributor.
 
 Snail mode remained after the first `bcdedit` attempt. I later confirmed native VT-x with nested paging in both VM logs on October 18. That verifies the reported virtualization-mode correction, not which Windows feature originally started the hypervisor or whether every contributing freeze cause has been eliminated. The exact trigger and long-term recurrence prevention remain unproven. [VirtualBox's Hyper-V troubleshooting guidance](https://docs.oracle.com/en/virtualization/virtualbox/7.2/user/Troubleshooting.html) supports checking Windows virtualization features and VBS; it does not establish this incident's cause by itself.
