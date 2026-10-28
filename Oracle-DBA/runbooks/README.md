@@ -13,5 +13,7 @@ Operational notes from my self-directed Oracle lab work, checked against my two-
 | [Space management](space-management.md) | Reference reviewed; SQL and lab exercises to verify |
 | [Object DDL extraction](generate-object-ddl.md) | Reference reviewed; lab output validation pending |
 | [SQL Tuning Advisor](sql-tuning-advisor.md) | Planned exercise |
+| [Application containers lab](application-containers-lab.md) | Verified on the 26ai RAC |
+| [Multitenant users, Resource Manager and lockdown profiles](multitenant-resource-manager-lockdown-lab.md) | Commands written; results to record |
 
 Scripts: [`../scripts/rman/rman_backup.sh`](../scripts/rman/rman_backup.sh)
