@@ -3,7 +3,7 @@
 **Date:** October 27–28, 2026
 **Environment:** two-node Oracle 26ai RAC lab (CDB `RAC`, instances RAC1/RAC2), run as oracle with `sqlplus / as sysdba`.
 **Status:** Verified. Install, two tenants, cross-tenant query, upgrade with partial sync, full sync and a patch all ran; results are recorded below.
-**Exam link:** 1Z0-083, "Manage Application PDBs".
+**Topic area:** Oracle Multitenant — application containers (application root, application PDBs, install, upgrade, patch and sync).
 
 ## The idea in one sentence
 
@@ -229,7 +229,7 @@ SHOW PDBS
 
 To remove the lab completely, drop the tenants first, then the application root clone, then the application root, each with `INCLUDING DATAFILES`.
 
-## Five exam rules
+## Key rules
 
 1. The application root is created from the CDB root with `AS APPLICATION CONTAINER`.
 2. Application PDBs and the application seed are created from the application root.

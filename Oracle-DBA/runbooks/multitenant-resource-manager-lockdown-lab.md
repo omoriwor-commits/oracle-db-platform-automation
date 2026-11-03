@@ -3,7 +3,7 @@
 **Date:** October 27, 2026
 **Environment:** two-node Oracle 26ai RAC lab (CDB `RAC`), run as oracle with `sqlplus / as sysdba`.
 **Status:** RACPDB2 created and open. The user, Resource Manager and lockdown steps are written but their results are not yet recorded.
-**Exam link:** 1Z0-083, "Manage CDBs and PDBs" and "Manage Security in Multitenant databases".
+**Topic area:** Oracle Multitenant — CDB/PDB management, common and local users, Resource Manager and PDB lockdown profiles.
 
 ## Key points
 
