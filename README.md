@@ -1,4 +1,4 @@
-# Oracle Database Platform Engineering
+# Oracle Database Platform Automation
 
 Oracle database lab portfolio focused on **migration and GoldenGate replication** across Oracle Cloud Infrastructure (OCI), Azure and local VirtualBox environments, with RAC, Data Guard and RMAN lab work and a DevOps automation project in progress.
 
@@ -20,6 +20,10 @@ Oracle 26ai / OCI Compute
    v
 SQL Server 2022 / Azure
 ```
+
+## AWS and OCI parallel-track readiness
+
+AWS DMS Full Load + CDC, schema conversion and Terraform remain **planned, not deployed**. The proposed first modernization target is Amazon RDS for PostgreSQL, pending architectural/cost validation; Aurora PostgreSQL remains an optional extension. See the [AWS modernization hub](AWS/README.md), [decision record](AWS/architecture/ADR-001-postgresql-target.md), [DMS/schema conversion runbook](AWS/runbooks/oracle-to-postgresql-dms-sct-implementation.md), and [acceptance matrix](AWS/validation/aws-migration-acceptance-matrix.md). The completed 2023 EC2/RDS for Oracle practice remains separately documented.
 
 ## Engineering projects
 
@@ -151,3 +155,8 @@ The [Oracle Database Engineering Knowledge Base](KNOWLEDGE-BASE.md) organizes re
 ## Publication practice
 
 Code, configuration examples, logs, and screenshots are sanitized before publication. Sensitive credentials, private keys, wallet files, and confidential data must not be committed.
+
+
+## Current repository controls
+
+Repository checks run Python regression tests, shell validation, YAML/local-link checks and Gitleaks scans. These source checks are separate from database schema deployment, live availability and restore tests. [Open live-validation gates](Oracle-Database-Platform-Automation/validation/pending-live-validation.md) track patch/LMON investigation, migration/recovery evidence and the draft scheduling rollout.

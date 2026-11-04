@@ -5,11 +5,13 @@ Operational notes from my self-directed Oracle lab work, checked against my two-
 | Runbook | Status |
 | ------- | ------ |
 | [Clusterware crsctl reference](rac-clusterware-crsctl-reference.md) | Verified on the 26ai RAC |
+| [Users, roles and profiles](users-roles-profiles.md) | Reference reviewed; lab enforcement tests pending |
 | [OCR, OLR and voting files](ocr-olr-administration.md) | Draft; log locations confirmed, commands to verify |
 | [RMAN backup automation](rman-backup-automation.md) | Draft; script written, first run to do |
 | [DBMS_SCHEDULER](dbms-scheduler.md) | Reference reviewed; runtime/calendar tests pending |
 | [Daily and weekly health checks](database-health-checks.md) | Runner tests/manual collection validated on racnode1; racnode2/cron pending |
 | [Space management](space-management.md) | Reference reviewed; SQL and lab exercises to verify |
+| [Object DDL extraction](generate-object-ddl.md) | Reference reviewed; lab output validation pending |
 | [SQL Tuning Advisor](sql-tuning-advisor.md) | Planned exercise |
 
 Scripts: [`../scripts/rman/rman_backup.sh`](../scripts/rman/rman_backup.sh)

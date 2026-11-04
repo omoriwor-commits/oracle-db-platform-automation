@@ -1,5 +1,8 @@
 # Oracle GoldenGate 26ai Setup Runbook
 
+> Lifecycle note for GoldenGate 26ai: ordinary Integrated Replicat is deprecated. Oracle identifies parallel Replicat in integrated mode as an alternative. The ordinary Integrated Replicat commands below are retained as a historical/reference configuration, not the default design for a new deployment. For a new Oracle target, assess parallel integrated mode against database support, datatype limitations, checkpoint and instantiation requirements, then validate its mode-specific creation syntax. This does not describe SQL Server apply, which uses its database-specific runtime. [Oracle lifecycle notice](https://docs.oracle.com/en/database/goldengate/core/26/release-notes/deprecated-features.html).
+
+
 **Author:** Rotimi Ezekiel  
 **Last revised:** 2026-10-16  
 **Status:** Draft — reviewed against Oracle documentation; not yet validated end to end in this lab.  
@@ -504,3 +507,4 @@ Deleting process groups is not a full uninstall: parameter files, trails, report
 - [Deleting Extract and Replicat](https://docs.oracle.com/en/database/goldengate/core/26/coredoc/deleting-extract-and-replicat-1.html)
 
 Documentation review does not replace testing against the exact installed software and database release updates.
+

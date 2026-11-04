@@ -4,3 +4,4 @@ Oracle database administration scripts and records, starting with RMAN backup an
 
 - [Oracle DBA runbooks](runbooks/README.md): crsctl, OCR/OLR, RMAN automation, health checks, SQL Tuning Advisor
 - [Space management on 26ai RAC](runbooks/space-management.md): allocation, tablespaces, TEMP, FRA, archive volume, Flashback sizing and physical limits; lab validation pending
+- [Object DDL extraction](runbooks/generate-object-ddl.md): tables, views, materialized views and restricted user metadata; lab validation pending

@@ -1,5 +1,8 @@
 # 06 — Integrated Replicat and Validation
 
+> Lifecycle note for GoldenGate 26ai: ordinary Integrated Replicat is deprecated. Oracle identifies parallel Replicat in integrated mode as an alternative. The ordinary Integrated Replicat commands below are retained as a historical/reference configuration, not the default design for a new deployment. For a new Oracle target, assess parallel integrated mode against database support, datatype limitations, checkpoint and instantiation requirements, then validate its mode-specific creation syntax. This does not describe SQL Server apply, which uses its database-specific runtime. [Oracle lifecycle notice](https://docs.oracle.com/en/database/goldengate/core/26/release-notes/deprecated-features.html).
+
+
 > **Reference scope:** Vendor documentation and illustrative configurations. Executed changes require separately retained logs and validation evidence.
 >
 
@@ -264,3 +267,4 @@ Evidence file references (sanitized):
 - [Configure Oracle GoldenGate Environment](https://docs.oracle.com/en/database/goldengate/core/26/ggmah/task-2-configure-oracle-goldengate-environment.html)
 
 **Next:** [07 — Initial Load, SCN/CSN and Cutover](07-initial-load-scn-csn-and-cutover.md)
+

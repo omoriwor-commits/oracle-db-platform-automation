@@ -1,7 +1,7 @@
 # Automate the existing RAC health snapshot
 
-**Updated:** 2026-10-20.  
-**Status:** Eight runner tests passed and one manual RAC snapshot completed on racnode1 on 2026-10-20 (user-provided output). Racnode2 runner tests/manual validation and scheduled cron runs remain pending; no schedule has been activated by this change.
+**Updated:** 2026-11-04 (documentation/CI review; lab results remain dated 2026-10-20).
+**Status:** Eight runner tests passed and one manual RAC snapshot completed on racnode1 on 2026-10-20 (from my terminal output). Racnode2 runner tests/manual validation and scheduled cron runs remain pending; no schedule has been activated by this change.
 
 ## What runs
 
@@ -52,7 +52,7 @@ These exercise real child-process exit handling, missing/mismatched reports, loc
 /usr/bin/python3 -m unittest discover -s /home/grid/oracle-health-automation/Oracle-DBA/scripts/health -p 'test_*.py' -v
 ```
 
-All eight tests passed on racnode1 in 0.656 seconds on 2026-10-20, as shown in the supplied terminal output. Repeat on racnode2; stop on test failure. These are fake-collector tests, not Oracle availability tests.
+All eight tests passed on racnode1 in 0.656 seconds on 2026-10-20, per my terminal output. Repeat on racnode2; stop on test failure. These are fake-collector tests, not Oracle availability tests.
 
 ## 3. One manual snapshot on each node
 
@@ -116,7 +116,7 @@ References: [Python flock](https://docs.python.org/3/library/fcntl.html), [Oracl
 
 ## Observed validation: racnode1, 2026-10-20
 
-Evidence supplied by the user in this conversation; summarized without raw alert excerpts:
+Summary of my racnode1 run (raw alert excerpts left out):
 
 | Check | Observed result |
 |---|---|
