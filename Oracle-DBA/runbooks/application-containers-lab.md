@@ -2,7 +2,7 @@
 
 **Date:** October 27–28, 2026
 **Environment:** two-node Oracle 26ai RAC lab (CDB `RAC`, instances RAC1/RAC2), run as oracle with `sqlplus / as sysdba`.
-**Status:** Verified. Install, two tenants, cross-tenant query, upgrade with partial sync, full sync and a patch all ran; results are recorded below.
+**Status:** Core lab steps verified: install, two tenants, cross-tenant query, upgrade with partial sync, full sync and root patch installation. Section 10 still needs two tenant-side shared-data observations; the three optional experiments in section 11 have not run. Recorded results below are historical lab evidence, not a fresh rerun.
 **Topic area:** Oracle Multitenant — application containers (application root, application PDBs, install, upgrade, patch and sync).
 
 ## The idea in one sentence
@@ -172,7 +172,7 @@ Result:
 ORA-65097: DML into a data link table is outside an application action
 ```
 
-In tenant1, `COUNTRIES` is only a data link to the rows in the application root. Shared rows can only be changed in the application root, inside an application action.
+In tenant1, `COUNTRIES` is a data link to the rows in the application root. This tenant-side INSERT was rejected. The root-side change in section 10 was performed inside a patch action; this exercise does not establish that every root-side shared-data change requires a patch.
 
 ## 10. Change shared data the right way: a patch
 
@@ -234,5 +234,5 @@ To remove the lab completely, drop the tenants first, then the application root 
 1. The application root is created from the CDB root with `AS APPLICATION CONTAINER`.
 2. Application PDBs and the application seed are created from the application root.
 3. Install, upgrade and patch happen in the application root, between `BEGIN` and `END`.
-4. Tenants get changes only after `SYNC`, run in the tenant.
+4. The application version/schema upgrade demonstrated here reached each tenant through its own `SYNC`. Do not generalise that result to the visibility of shared `DATA` rows; the before/after observations in section 10 remain pending.
 5. `METADATA` shares the design; `DATA` shares the rows; `EXTENDED DATA` shares rows and allows local rows.
