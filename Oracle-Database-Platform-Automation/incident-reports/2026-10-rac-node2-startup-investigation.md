@@ -88,7 +88,7 @@ Lessons:
 - [ ] Clusterware resource table and node membership after recovery
 - [ ] ASM disk group and database instance verification
 - [ ] SELinux audit evidence or explicit finding that none was available
-- [ ] Final root-cause conclusion, only if supported by logs
+- [ ] Corroborating host/VM logs for the owner-confirmed Hyper-V/snail-mode cause; distinguish this from unverified final 19c cluster recovery
 - [ ] Reproducible corrective procedure and rollback steps
 
 ## Portfolio / LinkedIn context
