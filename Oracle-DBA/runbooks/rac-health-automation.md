@@ -1,7 +1,7 @@
 # Automate the existing RAC health snapshot
 
-**Updated:** 2026-11-04 (documentation/CI review; lab results remain dated 2026-10-20).
-**Status:** Eight runner tests passed and one manual RAC snapshot completed on racnode1 on 2026-10-20 (from my terminal output). Racnode2 runner tests/manual validation and scheduled cron runs remain pending; no schedule has been activated by this change.
+**Updated:** 2026-11-05 (whole-run timeout, checker trust checks and eighteen added tests; earlier lab results remain dated 2026-10-20).
+**Status:** Eight runner tests passed and one manual RAC snapshot completed on racnode1 on 2026-10-20 (from my terminal output). On 2026-11-05 the original eight tests passed again on racnode1 with Python 3.9.25 at commit d6d988d, before the hardening changes ("Ran 8 tests in 0.768s … OK", per my terminal output). The suite now has twenty-six tests; the eighteen added on 2026-11-05 are set to run in CI on Python 3.9 and 3.12 and have not yet been run on racnode1. Racnode2 runner tests/manual validation and scheduled cron runs remain pending; no schedule has been activated by this change.
 
 ## What runs
 
@@ -15,10 +15,12 @@ Use the OS scheduler for this snapshot: it must be able to launch while Oracle i
 
 - [run_rac_health.py](../scripts/health/run_rac_health.py): password-free launcher using existing authorized OS authentication.
 - [test_run_rac_health.py](../scripts/health/test_run_rac_health.py): Linux tests with disposable fake collectors, no Oracle.
-- Local exclusive lock prevents overlapping normal runs; inherited lock descriptor stays held by the collector if the launcher exits.
+- Local exclusive lock prevents overlapping normal runs; inherited lock descriptor stays held by the collector if the launcher exits. The lock and log files are opened non-blocking, so a FIFO or other non-regular file planted at those paths is rejected instead of hanging the runner.
 - Logs/reports are private: directory 0700, artifacts 0600. A SHA-256 identifies the checker version used.
 - Exit codes 0/1/2/3 preserve OK/warning/critical/configuration-error outcomes. Missing or invalid JSON cannot produce OK.
-- Exit 70 means runner/report failure; 75 means an overlapping run was skipped. Skips do not overwrite the previous run status.
+- The checker must be an absolute path to a regular file (not a symlink), owned by the runner account or root, and neither the file nor its directory may be group- or other-writable. Otherwise the run stops before launching anything.
+- --max-runtime (default 600 seconds) is a whole-run deadline. The collector runs in its own process group; at the deadline every member of the group receives SIGTERM, then SIGKILL after 10 seconds, so a descendant that ignores SIGTERM is still stopped. The run records status TIMEOUT with the elapsed time and exits 70. If the collector exits normally but leaves processes in its group (for example, a command its own per-command timeout abandoned), they are stopped the same way and recorded as leftover_pids; the checker's result is kept. Any member that survives SIGKILL or cannot be signaled by this account (for example, a process in uninterruptible I/O or a setuid program) is recorded as surviving_pids, and the runner returns instead of waiting on it. A run with surviving_pids always exits 70 (RUNNER_ERROR, or TIMEOUT if the deadline was hit), never OK; checker_exit_code still records what the checker itself returned. Such a process may still hold the lock, so investigate before the next run. A descendant that starts its own session escapes the group and is not covered.
+- Exit 70 means runner/report failure or timeout; 75 means an overlapping run was skipped. Skips do not overwrite the previous run status.
 - Matching owned regular artifacts older than 30 days are removed under the lock. Unrelated files and symlinks are not pruned. Adjust --keep-days before retaining audit evidence longer.
 - last-run.json records RUNNING before launch and completion afterward; per-run metadata preserves completed history. Unexpected termination can leave RUNNING as evidence of interruption.
 
@@ -39,20 +41,21 @@ Use the feature branch for testing, or main after merge. The code and tests must
 whoami
 /usr/bin/python3 --version
 ls -l /home/grid/oracle-health-automation/Oracle-DBA/scripts/health/
+ls -ld /home/grid/scripts /home/grid/scripts/rac_health_check.py
 /usr/bin/python3 /home/grid/scripts/rac_health_check.py --version
 ```
 
-The collector must report the reviewed revision. Review/pin any newer revision before activation. Use local storage, not NFS, for the output/lock directory.
+Neither the checker nor /home/grid/scripts may show group or other write permission (no `w` in the last six mode characters); the runner refuses to launch it otherwise. The collector must report the reviewed revision. Review/pin any newer revision before activation. Use local storage, not NFS, for the output/lock directory.
 
 ## 2. Run the new runner tests first
 
-These exercise real child-process exit handling, missing/mismatched reports, local lock exclusion, environment cleanup, file privacy, symlink rejection and retention scope:
+These exercise real child-process exit handling, missing/mismatched reports, local lock exclusion (including a collector orphaned by a killed launcher), environment cleanup, file privacy, symlink rejection, retention scope, the whole-run timeout and checker trust checks:
 
 ```bash
 /usr/bin/python3 -m unittest discover -s /home/grid/oracle-health-automation/Oracle-DBA/scripts/health -p 'test_*.py' -v
 ```
 
-All eight tests passed on racnode1 in 0.656 seconds on 2026-10-20, per my terminal output. Repeat on racnode2; stop on test failure. These are fake-collector tests, not Oracle availability tests.
+All eight tests passed on racnode1 in 0.656 seconds on 2026-10-20, per my terminal output. Expect twenty-six tests from 2026-11-05 onward; the full set is pending on racnode1. Repeat on racnode2; stop on test failure. These are fake-collector tests, not Oracle availability tests.
 
 ## 3. One manual snapshot on each node
 
@@ -74,7 +77,7 @@ ls -lt /home/grid/.local/state/oracle-health/
 
 A known compatibility or historical-alert warning can legitimately return 1. Record the finding; do not change thresholds or suppress it. An exit of 3/70, missing output, wrong database or incomplete permissions must be resolved before scheduling. Confirm no credential prompts occur and both node reports have their local alert coverage.
 
-The collector has per-command timeouts, not a whole-run deadline. A hung runner holds the local lock; repeated 75 exits or a stale RUNNING record require investigation. Do not delete the lock file to bypass an active run.
+The collector has per-command timeouts, and the runner adds a whole-run deadline (--max-runtime). A TIMEOUT result, repeated 75 exits or a stale RUNNING record require investigation. Keep --max-runtime well below the cron interval multiplied by the number of runs you can tolerate skipping; observe real run duration before tightening it. Do not delete the lock file to bypass an active run.
 
 ## 4. Activate only after tests and manual review pass
 
@@ -131,7 +134,7 @@ Summary of my racnode1 run (raw alert excerpts left out):
 | Remaining validation | Racnode2 tests/manual collection, both-node cron operation and freshness |
 
 Warnings to retain and investigate:
-- RAC1 recorded a new ORA-29770 LMON no-progress event at 08:15:21 CDT on October 20. This is distinct from the October 19 ASM history. Current OPEN instances do not explain the earlier hang; correlate the alert, LMHB incident trace and host timeline. Root cause is not established.
+- RAC1 recorded a new ORA-29770 LMON no-progress event at 08:15:21 CDT on October 20. This is distinct from the October 19 ASM history. Current OPEN instances do not explain the earlier hang; correlate the alert, LMHB incident trace and host timeline. Root cause is not established. The Hyper-V "snail mode" cause confirmed in the [October 2026 incident reports](../../Oracle-Database-Platform-Automation/incident-reports/2026-10-18-rac26-node2-root-script-vm-freeze.md) was corrected on October 18 (native VT-x confirmed), so it is not assumed to explain this October 20 event. Tracked in [Issue 23](https://github.com/omoriwor-commits/oracle-db-platform-automation/issues/23).
 - Three undated seed-datafile error lines need surrounding context; the sample reports zero future timestamps. This alone does not prove clock drift or a current missing datafile.
 - One compatibility warning per node: reported 23.26.1 runtime with OL9 UEK8, with the checker flagging documented support from RU 23.26.2. Existing compatibility work remains open.
 

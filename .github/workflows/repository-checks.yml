@@ -34,6 +34,11 @@ jobs:
         run: python -m unittest discover -s Oracle-DBA/scripts/health -p 'test_*.py' -v
       - name: Test RMAN orchestration with fake Oracle tools
         run: python -m unittest discover -s Oracle-DBA/scripts/rman/tests -v
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.9'
+      - name: Test RAC health runner on Python 3.9 (Oracle Linux 9 system Python)
+        run: python -m unittest discover -s Oracle-DBA/scripts/health -p 'test_*.py' -v
   secrets:
     runs-on: ubuntu-latest
     timeout-minutes: 10
