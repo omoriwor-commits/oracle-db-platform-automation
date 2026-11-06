@@ -11,6 +11,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest import mock
 
 spec = importlib.util.spec_from_file_location(
     "health_runner", str(Path(__file__).with_name("run_rac_health.py")))
@@ -414,6 +415,28 @@ class HardeningTests(unittest.TestCase):
             runner.os.killpg, runner.TERM_GRACE_SECONDS = real_killpg, old_grace
             child.kill()
             child.wait()
+
+    def test_final_cleanup_boundary_reaps_child_or_reports_it_as_survivor(self):
+        # Exhaust both group grace periods, then model the child exiting after
+        # the final poll: /proc can omit its zombie before wait() has reaped it.
+        for can_reap in (True, False):
+            with self.subTest(can_reap=can_reap):
+                child = mock.Mock(pid=123456, returncode=None)
+
+                def wait(timeout=None):
+                    if not can_reap:
+                        raise subprocess.TimeoutExpired("fake collector", timeout)
+                    child.returncode = 0
+                    return 0
+
+                child.wait.side_effect = wait
+                with mock.patch.object(runner, "TERM_GRACE_SECONDS", 0), \
+                        mock.patch.object(runner, "signal_group"), \
+                        mock.patch.object(runner, "live_group_members",
+                                          side_effect=[[child.pid], [child.pid], []]):
+                    survivors = runner.stop_group(child)
+                child.wait.assert_called_once_with(timeout=0)
+                self.assertEqual(survivors, [] if can_reap else [child.pid])
 
     def test_fifo_at_lock_path_is_rejected_without_blocking(self):
         self.collector()

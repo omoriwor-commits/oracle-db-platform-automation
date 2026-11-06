@@ -125,7 +125,8 @@ def stop_group(child):
 
     Escalation tracks the whole group, not just the direct child, so a
     descendant that ignores SIGTERM is still killed. Never blocks beyond the
-    grace periods; returns the PIDs of any members still running.
+    two group grace periods and one final reap grace period; returns the PIDs
+    of any members still running or an unreaped direct child.
     """
     pgid = child.pid
     for sig in (signal.SIGTERM, signal.SIGKILL):
@@ -140,8 +141,11 @@ def stop_group(child):
             if time.monotonic() >= deadline:
                 break
             time.sleep(0.1)
-    child.poll()
-    return live_group_members(pgid)
+    reaped = reap(child)
+    survivors = live_group_members(pgid)
+    if not reaped and child.pid not in survivors:
+        survivors.append(child.pid)
+    return survivors
 
 def atomic_json(path, data):
     fd, name = tempfile.mkstemp(prefix=".health-", dir=str(path.parent))
