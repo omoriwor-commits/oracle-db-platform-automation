@@ -1,7 +1,7 @@
 # Automate the existing RAC health snapshot
 
-**Updated:** 2026-11-05 (whole-run timeout, checker trust checks and eighteen added tests; earlier lab results remain dated 2026-10-20).
-**Status:** Eight runner tests passed and one manual RAC snapshot completed on racnode1 on 2026-10-20 (from my terminal output). On 2026-11-05 the original eight tests passed again on racnode1 with Python 3.9.25 at commit d6d988d, before the hardening changes ("Ran 8 tests in 0.768s … OK", per my terminal output). The suite now has twenty-six tests; the eighteen added on 2026-11-05 are set to run in CI on Python 3.9 and 3.12 and have not yet been run on racnode1. Racnode2 runner tests/manual validation and scheduled cron runs remain pending; no schedule has been activated by this change.
+**Updated:** 2026-11-05 (whole-run timeout, checker trust checks, racnode1 test evidence and Python 3.9 CI runner compatibility; historical manual snapshot remains dated 2026-10-20).
+**Status:** Eight runner tests passed and one manual RAC snapshot completed on racnode1 on 2026-10-20 (from my terminal output). On 2026-11-05 the original eight tests passed again on racnode1 with Python 3.9.25 at commit d6d988d, before the hardening changes ("Ran 8 tests in 0.768s … OK", per my terminal output). All twenty-six fake-collector tests passed on racnode1 as grid with Python 3.9.25 at commit c31f788 on 2026-11-05 in 12.326 seconds (OK), per my terminal output. This does not establish a live Oracle collection or cron acceptance for the hardened runner. CI runs the suite on Python 3.9 and 3.12; the checks job is pinned to Ubuntu 24.04 because the Python 3.9 setup failed on Ubuntu 26.04. A successful CI run on the updated revision must still be observed. Racnode2 runner tests/manual validation and scheduled cron runs remain pending; no schedule has been activated by this change.
 
 ## What runs
 
@@ -55,7 +55,7 @@ These exercise real child-process exit handling, missing/mismatched reports, loc
 /usr/bin/python3 -m unittest discover -s /home/grid/oracle-health-automation/Oracle-DBA/scripts/health -p 'test_*.py' -v
 ```
 
-All eight tests passed on racnode1 in 0.656 seconds on 2026-10-20, per my terminal output. Expect twenty-six tests from 2026-11-05 onward; the full set is pending on racnode1. Repeat on racnode2; stop on test failure. These are fake-collector tests, not Oracle availability tests.
+All eight tests passed on racnode1 in 0.656 seconds on 2026-10-20, per my terminal output. Expect twenty-six tests from 2026-11-05 onward; all twenty-six passed on racnode1 as grid with Python 3.9.25 at commit c31f788 on 2026-11-05 in 12.326 seconds. Repeat on racnode2; stop on test failure. These are fake-collector tests, not Oracle availability tests.
 
 ## 3. One manual snapshot on each node
 
