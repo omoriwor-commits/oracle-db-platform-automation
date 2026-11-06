@@ -1,9 +1,9 @@
 # Automate the existing RAC health snapshot
 
-**Updated:** 2026-11-05 (whole-run timeout, checker trust checks, racnode1 27-test evidence, final child reaping and Python 3.9 CI runner compatibility; historical manual snapshot remains dated 2026-10-20).
-**Status:** Eight runner tests passed and one manual RAC snapshot completed on racnode1 on 2026-10-20 (from my terminal output). On 2026-11-05 the original eight tests passed again on racnode1 with Python 3.9.25 at commit d6d988d, before the hardening changes ("Ran 8 tests in 0.768s … OK", per my terminal output). All twenty-six fake-collector tests passed on racnode1 as grid with Python 3.9.25 at commit c31f788 on 2026-11-05 in 12.326 seconds (OK), per my terminal output. This does not establish a live Oracle collection or cron acceptance for the hardened runner. CI runs the suite on Python 3.9 and 3.12; the checks job is pinned to Ubuntu 24.04 because the Python 3.9 setup failed on Ubuntu 26.04. GitHub Actions run 42139782092 passed on 036968c; a fresh pass is required for the cleanup-boundary follow-up. Racnode2 runner tests/manual validation and scheduled cron runs remain pending; no schedule has been activated by this change.
+**Updated:** 2026-11-06 (both-node 27-test results, live manual collection and first completed cron runs).
+**Status:** The hardened runner's 27 fake-collector tests passed on both lab nodes as grid with Python 3.9.25. Manual collection and the first staggered cron execution completed on both nodes, preserving WARNING / exit 1. This establishes initial scheduled collection, not an all-clear or sustained monitoring reliability. The November evidence and remaining warnings are recorded below; historical October results remain separate.
 
-The cleanup-boundary follow-up adds a twenty-seventh fake-collector regression test and ensures the direct child is reaped after the final group grace period, or reported as a survivor. The 26-test racnode1 result above applies to c31f788 only; all 27 tests passed on racnode1 as grid with Python 3.9.25 in 13.662 seconds, with ResourceWarnings treated as errors and none shown. The run started at 2026-11-06 05:53 UTC (2026-11-05 America/Chicago) from base 036968c plus the reviewed incremental patch, SHA-256 937f1f112d5007de3fd9bfdb5b0146fef2723d6b1272a9a6485d787ce0b1875f, per my terminal output. This validates fake collectors only, not a live Oracle collection or cron operation. Racnode2 and cron acceptance remain tracked in [Issue #24](https://github.com/omoriwor-commits/oracle-db-platform-automation/issues/24).
+Runner code/tests correspond to 0fb29c8. On racnode1 the tested checkout was base 036968c plus the reviewed incremental patch (SHA-256 937f1f112d5007de3fd9bfdb5b0146fef2723d6b1272a9a6485d787ce0b1875f); its runner/test files were compared with 0fb29c8 before cron activation. Racnode2 used a checkout of 0fb29c8. GitHub Actions [run 42171377748](https://github.com/omoriwor-commits/oracle-db-platform-automation/actions/runs/42171377748) passed on that revision, including Python 3.9 and 3.12 health tests. The checks job uses Ubuntu 24.04 for Python 3.9 compatibility. Evidence below comes from supplied lab terminal transcripts/screenshots, not remote execution by the documentation editor. Follow-up remains tracked in [Issue #24](https://github.com/omoriwor-commits/oracle-db-platform-automation/issues/24).
 
 ## What runs
 
@@ -57,7 +57,7 @@ These exercise real child-process exit handling, missing/mismatched reports, loc
 /usr/bin/python3 -m unittest discover -s /home/grid/oracle-health-automation/Oracle-DBA/scripts/health -p 'test_*.py' -v
 ```
 
-All eight tests passed on racnode1 in 0.656 seconds on 2026-10-20, per my terminal output. The earlier twenty-six tests all passed on racnode1 as grid with Python 3.9.25 at commit c31f788 on 2026-11-05 in 12.326 seconds. The expanded 27-test suite subsequently passed on racnode1 in 13.662 seconds with Python 3.9.25 and ResourceWarnings treated as errors (see the status evidence above). Repeat on racnode2; stop on test failure. These are fake-collector tests, not Oracle availability tests.
+All eight tests passed on racnode1 in 0.656 seconds on 2026-10-20, per my terminal output. The earlier twenty-six tests all passed on racnode1 as grid with Python 3.9.25 at commit c31f788 on 2026-11-05 in 12.326 seconds. The expanded 27-test suite subsequently passed on racnode1 in 13.662 seconds with Python 3.9.25 and ResourceWarnings treated as errors (see the status evidence above). All 27 tests also passed on racnode2 at 0fb29c8 in 14.481 seconds with Python 3.9.25 and ResourceWarnings treated as errors. Stop on test failure when repeating validation. These are fake-collector tests, not Oracle availability tests.
 
 ## 3. One manual snapshot on each node
 
@@ -96,16 +96,22 @@ If no crontab exists, crontab -l can return a nonzero status; do not overwrite u
 Add **one** entry on racnode1:
 
 ```cron
-0,15,30,45 * * * * umask 077; /usr/bin/python3 /home/grid/oracle-health-automation/Oracle-DBA/scripts/health/run_rac_health.py --checker /home/grid/scripts/rac_health_check.py --output-dir /home/grid/.local/state/oracle-health > /home/grid/.local/state/oracle-health/cron-last.log 2>&1
+0,15,30,45 * * * * umask 077; /usr/bin/python3 /home/grid/oracle-health-automation/Oracle-DBA/scripts/health/run_rac_health.py --checker /home/grid/scripts/rac_health_check.py --output-dir /home/grid/.local/state/oracle-health --max-runtime 600 > /home/grid/.local/state/oracle-health/cron-last.log 2>&1
 ```
 
 Add **one** entry on racnode2, staggered seven minutes:
 
 ```cron
-7,22,37,52 * * * * umask 077; /usr/bin/python3 /home/grid/oracle-health-automation/Oracle-DBA/scripts/health/run_rac_health.py --checker /home/grid/scripts/rac_health_check.py --output-dir /home/grid/.local/state/oracle-health > /home/grid/.local/state/oracle-health/cron-last.log 2>&1
+7,22,37,52 * * * * umask 077; /usr/bin/python3 /home/grid/oracle-health-automation/Oracle-DBA/scripts/health/run_rac_health.py --checker /home/grid/scripts/rac_health_check.py --output-dir /home/grid/.local/state/oracle-health --max-runtime 600 > /home/grid/.local/state/oracle-health/cron-last.log 2>&1
 ```
 
-The private directory must already exist from the manual run. cron-last.log contains only the latest trigger's launcher output; detailed snapshots are separately retained. No mail configuration is assumed. Monitor disk use; retention is age-based, not a hard size cap.
+Create the private directory before installing the schedule; shell redirection opens cron-last.log before the runner can create its output directory:
+
+```bash
+install -d -m 700 /home/grid/.local/state/oracle-health
+```
+
+The directory must be owned by grid. cron-last.log contains only the latest trigger's launcher output; detailed snapshots are separately retained. No mail configuration is assumed. Monitor disk use; retention is age-based, not a hard size cap.
 
 ## 5. Prove operation and maintain it
 
@@ -113,7 +119,7 @@ After each node's next interval, verify a new completed last-run.json, fresh per
 
 Review last-run.json freshness as well as exit status. A suggested local review threshold is no completed result in 30 minutes, but this is not implemented alerting. Cron daemon, host outages and launch-before-script failures require separate monitoring.
 
-Record node, runner/checker commit hashes, schedule and sanitized manual/cron results. Racnode1 tests/manual output are recorded below; retain Pending for racnode2 and cron until observed. Do not publish raw alert excerpts or internal identifiers without review.
+Record node, runner/checker commit hashes, schedule and sanitized manual/cron results. Initial tests, manual collection and completed cron results for both nodes are recorded below. Repeated scheduled completion/freshness and load observation remain follow-up work. Do not publish raw alert excerpts or internal identifiers without review.
 
 Rollback: remove/comment only these health entries with crontab -e on each node. Preserve reports. Removing a schedule does not terminate an active collector; inspect it separately.
 
@@ -143,3 +149,53 @@ Warnings to retain and investigate:
 Node 2's SELinux troubleshooting processes briefly used up to 94.3% of one core in the sample. No paging was observed during sampled intervals. Neither observation establishes the hang's cause. Do not suppress these findings to obtain exit 0.
 
 No cron execution, notification delivery, failover or restore result is established by this manual snapshot.
+
+## Observed validation: both nodes, 2026-11-06
+
+Self-directed lab evidence from the operator's terminal output. Both nodes used Python 3.9.25 as grid and checker revision 2026-10-19.3, SHA-256 `0f1d1f78fb839ceaeb017cdcfb12b10fdb3e397e1c73907379f2cc248d08d954`. The older racnode2 collector was preserved in a private local backup before replacement; raw logs remain on the lab hosts.
+
+### Regression tests
+
+| Node | Source | Result |
+|---|---|---|
+| racnode1 | 036968c plus reviewed patch; runner/tests match 0fb29c8 | 27 tests, 13.662 seconds, OK; run began 2026-11-06 05:53 UTC (November 5 locally) |
+| racnode2 | 0fb29c8 | 27 tests, 14.481 seconds, OK; run began 2026-11-06 06:43 UTC |
+
+Both runs used `-W error::ResourceWarning`; no ResourceWarnings appeared in the supplied output. RUNNER_ERROR, TIMEOUT and overlap-skip messages inside these tests are expected negative cases. These are fake-collector tests, not Oracle availability tests.
+
+### Manual collection
+
+| Node / case | UTC start–finish | Checker / runner | Findings |
+|---|---|---|---|
+| racnode1, database intentionally stopped | 06:03:40–06:04:40 | 2 / 2, CRITICAL | 2 critical, 4 warnings; database SQL and alert coverage incomplete |
+| racnode1, after database startup | 06:32:17–06:35:00 | 1 / 1, WARNING | 0 critical, 12 warnings |
+| racnode2, database open | 06:48:31–06:49:34 | 1 / 1, WARNING | 0 critical, 11 warnings |
+
+The stopped-database result was an intentional lab state, not evidence of an unexplained crash. Subsequent SRVCTL output showed RAC1/RAC2 OPEN with RAC_RACPDB1 online on both nodes. Open-database manual runs collected OS nodes, Clusterware, database SQL/services and ASM; alert coverage was bounded and local to the executing node. Racnode2's missing local DBCA completion log was informational, not a current availability failure.
+
+### First completed scheduled runs
+
+crond was active on both nodes. Initially neither grid account had a crontab. Installed schedules use America/Chicago time, a 600-second maximum runtime, absolute paths and a private output directory. Racnode1 runs at :00/:15/:30/:45; racnode2 runs at :07/:22/:37/:52.
+
+| Node | started_at (UTC) | finished_at (UTC) | Duration | Result |
+|---|---|---|---|---|
+| racnode1 | 2026-11-06T07:00:01.981362+00:00 | 2026-11-06T07:01:24.818417+00:00 | 82.837 seconds | Checker 1 / runner 1, WARNING; 0 critical, 11 warnings |
+| racnode2 | 2026-11-06T07:07:02.846646+00:00 | 2026-11-06T07:09:41.506789+00:00 | 158.660 seconds | Checker 1 / runner 1, WARNING; 0 critical, 12 warnings |
+
+These correspond to 01:00–01:01 and 01:07–01:09 CST. Each cron-last.log and completed last-run.json agreed on WARNING / exit 1 and the checker hash above. Per-run log/report stems retained locally:
+
+- racnode1: `health-20261106T070001981362Z-1375414`
+- racnode2: `health-20261106T070702846646Z-436531`
+
+This verifies one completed scheduled execution per node. Subsequent cadence, freshness over time, per-run metadata/file-mode inspection and external heartbeat/notification delivery are not established by these terminal excerpts.
+
+### Findings and remaining limits
+
+- Eight warnings in each scheduled run concern four mounted PDBs on each instance. Their intended open-state policy remains to be confirmed; do not open them merely to clear warnings.
+- Two compatibility warnings flag reported 23.26.1 runtime with OL9 UEK8. The checker's support claim still needs independent confirmation against full Grid/DB patch inventories and authoritative certification information; it is not a completed compliance assessment.
+- Racnode1's scheduled run found 18 matching RAC1 alert-log lines in the lookback window. Correlate timestamps and surrounding events before declaring an active fault; matching lines are not incident counts or an established root cause.
+- Racnode2's scheduled run observed CPU at or above 85% in all three sampled intervals on both nodes. Review processes and host load, then assess the 15-minute cadence; the short sample does not establish the cause.
+- Manual snapshots also observed intermittent paging. Do not equate allocated swap or a short paging sample with proven thrashing. SELinux/HugePages observations do not justify automatic configuration changes.
+- Local alerts remain sampled, not exhaustive. SCAN client connectivity, failover, backup recoverability, certification and sustained monitoring reliability were not tested by these health runs. Planned tablespace/RMAN coverage and overall Phase 1 completion remain separate.
+
+The initial scheduling execution gate is evidenced; warning investigation and continued freshness/load observation remain open. No automatic repair or notifications were enabled.
