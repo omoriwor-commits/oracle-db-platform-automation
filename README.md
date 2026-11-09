@@ -39,7 +39,7 @@ Oracle 19c / PRODBHR (Oracle Linux 7.9)
    -> Oracle AI Database 26ai / PDB23AI (Oracle Linux 9.8)
 ```
 
-**Engineering decision:** Run GoldenGate off-box on the newer Oracle Linux environment rather than install GoldenGate 26ai on the older source OS. Tested DML (INSERT, UPDATE, DELETE) and DDL (CREATE TABLE, DROP TABLE) replication. Sanitized configuration and test output will be added to the project repository.
+**Engineering decision:** Run GoldenGate off-box on the newer Oracle Linux environment rather than install GoldenGate 26ai on the older source OS. November 7–8, 2026 local recovery validation confirmed TEST1 and FOX INSERT/UPDATE/DELETE delivery, plus four mapped DDL operations (test CREATE/ALTER/DROP and FOX primary-key addition), with zero reported DDL errors and zero DML discards. See the [recovery runbook](GoldenGate/runbooks/goldengate-19c-to-26ai-recovery-runbook.md) and [incident report](Oracle-Database-Platform-Automation/incident-reports/2026-11-07-08-goldengate-recovery-and-validation.md). These are sanitised evidence summaries; raw transcripts are retained separately. CHILDREN_NAMES live DML, full reconciliation and several privilege/security follow-ups remain open.
 
 ### Migration 2 — Oracle 26ai On-Premises to OCI Migration & GoldenGate Replication
 
