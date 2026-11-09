@@ -2,7 +2,7 @@
 
 Evidence updated: November 8, 2026, through 19:59 CST. Live INSERT/UPDATE/DELETE verified on HOLA.TEST1 and HOLA.FOX; four mapped DDL operations applied with zero DDL errors. HOLA schema key logging and FOX target key selection confirmed. Both listener settings persisted. Section 14 is the current validation record; sections 1–13 preserve the recovery chronology.
 
-This record preserves correct commands and explanations from the supplied terminal output and logs. Mistyped commands, pasted prompts, repeated failures, and passwords are excluded. Historical errors are summarized where they explain a corrective action. Commands are grouped by execution context, not intended as one script to rerun blindly.
+This record preserves correct commands and explanations from my terminal output and logs. Mistyped commands, stray prompts, repeated failures, and passwords are excluded. Historical errors are summarized where they explain a corrective action. Commands are grouped by execution context, not intended as one script to rerun blindly.
 
 ## 1. Scope and environment
 
@@ -400,7 +400,7 @@ Both observed baselines: ID 1 NAME ROTE; ID 2 NAME GG TEST. Source columns ID NU
 6. Persist corrected target LOCAL_LISTENER after checking SPFILE/PFILE usage.
 7. Confirm private rotation of exposed source credentials and synchronization of actual consumers.
 8. If progress stops across a meaningful interval, inspect source capture state, waits, required redo availability, and current reports before restarting or tuning.
-9. Preserve retired OCI/Azure route configurations separately if available. No cloud endpoint or route dependency has been established in supplied management logs.
+9. Preserve retired OCI/Azure route configurations separately if available. I found no evidence of a dependency on retired cloud endpoints or routes in the management logs reviewed.
 
 ## 11. File locations and evidence register
 
@@ -416,7 +416,7 @@ Both observed baselines: ID 1 NAME ROTE; ID 2 NAME GG TEST. Source columns ID NU
 | Actual trail directory | /u02/ogg26ai_deploy/var/lib/data/dirdat |
 | Bounded recovery temporary area | /u02/ogg26ai_deploy/var/temp/BR/EXT19C |
 
-Supplied evidence includes RMAN validation Pasted text(20261107-193620).txt; Admin Server history Pasted text(20261107-202529).txt; Service Manager history Pasted text(20261107-204747).txt; Extract report with management authorization response Pasted text(20261107-205010).txt; pasted commands and screenshots in this conversation.
+Evidence includes the RMAN validation output, Admin Server and Service Manager history, the Extract report with the management authorization response, and my command output and screenshots, retained privately as lab evidence.
 
 This runbook records confirmed actions separately from pending work. Section 12 records subsequent catch-up and live DML verification; listener persistence and unresolved credential/security checks remain open.
 
@@ -454,7 +454,7 @@ INFO EXTRACT EXT19C DETAIL
 
 These are separate commands with the parameter edit between STOP and VIEW. Do not run as an unconditional stop/start script.
 
-New report: start 16:17:34 CST, PID 122855, attach to OGG$CAP_EXT19C at 16:18:03, position SCN 15755670, first record sequence 178 SCN 15755681. No ERROR/ABEND in supplied startup report.
+New report: start 16:17:34 CST, PID 122855, attach to OGG$CAP_EXT19C at 16:18:03, position SCN 15755670, first record sequence 178 SCN 15755681. No ERROR/ABEND in the startup report.
 
 OGG-01438 warned that the saved graceful-shutdown output checkpoint expected sequence 2/RBA 5447, while trail sequence 3/RBA 1730 existed. Output recovery scan completed and Extract continued rollover. No trail deletion or checkpoint reset was performed. This warning alone is not proof of target consistency.
 
@@ -471,7 +471,7 @@ SHOW CON_NAME
 SELECT id, name FROM HOLA.TEST1 WHERE id = 20261107;
 ```
 
-Both returned no rows. The following writes were instructed on SOURCE PRODBHR only; target evidence consists of SELECT results, not direct target writes. Source DML/COMMIT terminal acknowledgements were not separately pasted, so retain that evidence limit. Extract/Replicat INSERT counters independently corroborate the insert path.
+Both returned no rows. I made the following writes on SOURCE PRODBHR only; target evidence consists of SELECT results, not direct target writes. Separate source DML/COMMIT terminal acknowledgements are not included in the reviewed evidence, so that evidence limit remains. Extract/Replicat INSERT counters independently corroborate the insert path.
 
 SOURCE INSERT:
 
@@ -577,7 +577,7 @@ Residual follow-ups: intermittent <OGG_ADMIN_USER> management authorization fail
 
 ## 14. DDL, logging and FOX validation — November 8, 2026 update
 
-This section supersedes earlier pending DDL, final TEST1 counter and HOLA logging notes. Times below are displayed deployment times (CST); the source host uses America/New_York. Evidence is from a self-directed lab, not paid production work. Writes were instructed on source PRODBHR only, with multi-execution disabled and target PDB23AI used for SELECT verification. Not every source DML acknowledgement was pasted; matched capture/apply counters independently corroborate the exercised operations.
+This section supersedes earlier pending DDL, final TEST1 counter and HOLA logging notes. Times below are displayed deployment times (CST); the source host uses America/New_York. Evidence is from a self-directed lab, not paid production work. I made writes on source PRODBHR only, with multi-execution disabled, and used target PDB23AI for SELECT verification. Not every source DML acknowledgement is included in the reviewed evidence; matched capture/apply counters independently corroborate the exercised operations.
 
 ### 14.1 DDL through the existing wildcard
 
@@ -620,7 +620,7 @@ SELECT owner, table_name FROM dba_tables
 WHERE owner = 'HOLA' AND table_name = 'GG_DDL_TEST_20261108';
 ```
 
-No rows after replicated DROP; DESC then returned expected ORA-04043. This is an expected object-absence result, not a GoldenGate apply error. Extract and Replicat initially reported 3 mapped DDL operations, with all Replicat DDL error counters zero. Screenshots showed multi-execution enabled during parts of the earlier session, so the screenshots alone were not treated as sufficient replication evidence; process counters corroborated the three operations.
+No rows after replicated DROP; DESC then returned expected ORA-04043. This is an expected object-absence result, not a GoldenGate apply error. Extract and Replicat initially reported 3 mapped DDL operations, with all Replicat DDL error counters zero. My screenshots showed multi-execution enabled during parts of the earlier session, so I did not treat the screenshots alone as sufficient replication evidence; process counters corroborated the three operations.
 
 SOURCECATALOG PRODBHR plus TABLE HOLA.* includes matching HOLA tables. TABLE FOX.* is a different schema rule: HOLA.FOX is covered by HOLA.*, not by FOX.*. DDL INCLUDE MAPPED captures supported DDL for selected objects; matching Replicat mapping directs apply. A wildcard selects scope; it does not copy historical rows. A new table created and populated during active, correctly configured capture can have its DDL and subsequent DML replicated without a separate historical load. This DDL test independently established CREATE/ALTER/DROP only, not DML on that temporary table.
 
@@ -757,7 +757,7 @@ WHERE owner = 'HOLA' AND table_name = 'FOX'
   AND constraint_type IN ('P', 'U');
 ```
 
-Both sides: 14/14/14, no P/U constraint; ID NUMBER(10) nullable, NAME VARCHAR2(100), CREATED_AT DATE, STATUS VARCHAR2(20). Existing ID values were unique/non-null, but were not enforced. In this lab the source-only change was directed as follows:
+Both sides: 14/14/14, no P/U constraint; ID NUMBER(10) nullable, NAME VARCHAR2(100), CREATED_AT DATE, STATUS VARCHAR2(20). Existing ID values were unique/non-null, but were not enforced. In this lab I made the source-only change as follows:
 
 ```sql
 ALTER SESSION SET CONTAINER = PRODBHR;
@@ -774,7 +774,7 @@ FROM dba_constraints
 WHERE owner = 'HOLA' AND table_name = 'FOX' AND constraint_type = 'P';
 ```
 
-FOX_PK / P / ENABLED / VALIDATED was observed on target. The fourth mapped DDL and zero DDL errors corroborate apply. The source ALTER acknowledgement was not separately pasted; target constraint plus process counters are the retained evidence. No manual target constraint creation was instructed. A production key change additionally requires application/data-model and locking review; unique sample data alone does not establish the business key.
+FOX_PK / P / ENABLED / VALIDATED was observed on target. The fourth mapped DDL and zero DDL errors corroborate apply. The source ALTER acknowledgement is not separately included in the reviewed evidence; the target constraint plus process counters are the retained evidence. I did not create the constraint manually on the target. A production key change additionally requires application/data-model and locking review; unique sample data alone does not establish the business key.
 
 ### 14.6 FOX live INSERT/UPDATE/DELETE and selected key
 
@@ -824,6 +824,6 @@ November 8 19:59:11 Extract / 19:59:21 Replicat:
 
 Replicat total transactions 12; DDL errors/retried/discarded/ignored all zero. Direct transactions ratio 33.33% is an execution-path statistic, not a failure rate. The four DDL operations comprise test CREATE, ADD COLUMN, DROP, and FOX primary-key addition. No additional process restart was performed during these tests.
 
-Evidence: Pasted text(20261109-020037).txt (final stats and selected-key report); Pasted text(20261109-014505).txt (fourth DDL); image(20261109-013104).png (schema logging); image(20261109-012953).png (capture privilege and table-log-group result); image(20261109-015732).png (FOX update target); image(20261109-015828).png (FOX cleanup/count); earlier DDL screenshots and pasted SQL in this conversation. Filename UTC dates may be November 9 while displayed CST evidence dates are November 8.
+Evidence: final statistics and selected-key report, fourth DDL output, schema logging results, capture privilege and table-log-group results, FOX update and cleanup/count screenshots, and earlier DDL screenshots and SQL, from my terminal output and screenshots retained privately as lab evidence. Some evidence filenames use the November 9 UTC date; deployment times shown here are November 8 CST.
 
-Open: CHILDREN_NAMES live DML not independently tested; exact full-time historical FOX DATE comparison pending; source logging-inspection ORA-01031 unresolved; separate FOX-schema logging not inventoried; source private credential rotation unconfirmed; management authorization, TLS/hostname and conditional memory follow-ups remain. No full consistent-snapshot reconciliation, restart/failover test or measured delivery SLA is claimed. Final FOX counters are current to 19:59; the last pasted four-second Extract checkpoint snapshot was 17:35, not a new 19:59 lag measurement.
+Open: CHILDREN_NAMES live DML not independently tested; exact full-time historical FOX DATE comparison pending; source logging-inspection ORA-01031 unresolved; separate FOX-schema logging not inventoried; source private credential rotation unconfirmed; management authorization, TLS/hostname and conditional memory follow-ups remain. No full consistent-snapshot reconciliation, restart/failover test or measured delivery SLA is claimed. Final FOX counters are current to 19:59; my last recorded four-second Extract checkpoint snapshot was 17:35, not a new 19:59 lag measurement.

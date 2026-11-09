@@ -44,12 +44,12 @@ My OCI and Azure trial environments were retired. No dependency on those retired
 | Before 13:37 | Confirmed source capture DISABLED with its required checkpoint SCN. Located the covering archive log and validated the required archives with RMAN. |
 | 13:37 | Started Extract `EXT19C`. It recovered its existing state and attached to the capture. No checkpoint reset. |
 | 13:42 | Started Replicat `REP26AI`. It attached and rolled over to the next trail file. |
-| Afternoon | Monitored catch-up through the backlog. Lag fell from approximately 83 days through the backlog to about one hour, then stayed near one hour. |
+| Afternoon | Monitored catch-up through the backlog. Lag fell from nearly three months (read checkpoint from August 14) through the backlog to about one hour, then stayed near one hour. |
 | 15:54 | Compared host clocks and time zones. Source on America/New_York (EST, DST ended Nov 1), NTP synchronized. |
 | 16:10 | Stopped Extract gracefully and replaced the fixed `-04:00` offset with `America/New_York`. |
 | 16:17 | Restarted Extract. |
 | 16:22 | Extract lag about 4 seconds. |
-| 16:30–16:38 | Target screenshots show the test INSERT, UPDATE and DELETE transitions; INSERT counters captured at 16:31–16:32. |
+| 16:30–16:38 | My target screenshots show the test INSERT, UPDATE and DELETE transitions; INSERT counters captured at 16:31–16:32. |
 | After the DML test | Correct source and target listener endpoints persisted with `SCOPE=BOTH`; target SPFILE value explicitly verified. |
 | 17:08 | Extract RUNNING with 4-second lag; Replicat RUNNING/ATTACHED with zero lag. Both displayed trail sequence 4/RBA 3073. |
 
@@ -192,7 +192,7 @@ Extract restarted cleanly. OGG-01438 reported that the saved output checkpoint e
 
 **Baseline:** test ID `20261107` absent on both source `PRODBHR` and target `PDB23AI`.
 
-The test procedure directed all writes and commits to source `PRODBHR`, with SELECT-only checks on target `PDB23AI`. Supplied target screenshots show the expected transitions. Source DML/COMMIT acknowledgements were not separately pasted; INSERT capture and apply are independently corroborated by both process statistics.
+I made all writes and commits on source `PRODBHR` and used only SELECT checks on target `PDB23AI`. My target screenshots show the expected transitions. Separate source DML/COMMIT acknowledgements are not included in the reviewed evidence; INSERT capture and apply are independently corroborated by both process statistics.
 
 | Step | Source statement | Target result |
 |---|---|---|
@@ -303,7 +303,7 @@ Network addresses, host names and credential identities in connection examples u
 
 ## Appendix D. November 8 validation update — current evidence
 
-This update supersedes the earlier one-table-only validation scope. It records a self-directed local lab. Source writes were instructed only in PRODBHR; target PDB23AI was queried separately. Selected source acknowledgements were not pasted, but matching Extract/Replicat counters independently corroborate the exercised DML/DDL. No passwords or network addresses are added here.
+This update supersedes the earlier one-table-only validation scope. It records a self-directed local lab. I made source writes only in PRODBHR and queried target PDB23AI separately. Not every source acknowledgement is included in the reviewed evidence, but matching Extract/Replicat counters independently corroborate the exercised DML/DDL. No passwords or network addresses are added here.
 
 ### DDL and wildcard scope
 
@@ -323,7 +323,7 @@ Admin Client INFO SCHEMATRANDATA and INFO TRANDATA under the successful source r
 
 ### FOX primary key and live data changes
 
-CHILDREN_NAMES had an enabled primary key on CHILD_ID; TEST1 on ID. FOX initially had no primary/unique constraint or index. On each side, all 14 FOX IDs were populated and distinct, although the column was nullable. After these checks, a source-only ALTER TABLE HOLA.FOX ADD CONSTRAINT FOX_PK PRIMARY KEY (ID) was directed. Target showed FOX_PK ENABLED/VALIDATED and DDL counters increased to four with zero errors. Production adoption would also require application-key and locking review; uniqueness in current lab data alone does not establish a business key.
+CHILDREN_NAMES had an enabled primary key on CHILD_ID; TEST1 on ID. FOX initially had no primary/unique constraint or index. On each side, all 14 FOX IDs were populated and distinct, although the column was nullable. After these checks, I ran ALTER TABLE HOLA.FOX ADD CONSTRAINT FOX_PK PRIMARY KEY (ID) on the source only. Target showed FOX_PK ENABLED/VALIDATED and DDL counters increased to four with zero errors. Production adoption would also require application-key and locking review; uniqueness in current lab data alone does not establish a business key.
 
 A temporary FOX row (ID 20261108, GG_FOX_CDC_TEST) was inserted, updated from NEW to UPDATED, then deleted through separate source commits, with target checks between operations. Target returned to 14 rows. At 19:55:44 the wildcard resolved for FOX; at 19:56:04 Replicat explicitly selected ID as its target key and mapped ID, NAME, CREATED_AT and STATUS from trail metadata.
 
@@ -336,10 +336,10 @@ A temporary FOX row (ID 20261108, GG_FOX_CDC_TEST) was inserted, updated from NE
 | DML discards | 0 | 0 |
 | Mapped DDL operations | 4 | 4 |
 
-Replicat reported 12 total transactions; DDL errors, retried, discarded and ignored errors were all zero. The DDL count comprises temporary-table CREATE/ADD COLUMN/DROP and FOX_PK addition. Direct transactions ratio 33.33% is not an error rate. Latest counters do not supply a fresh 19:59 lag snapshot; the last pasted four-second Extract snapshot was around 17:35.
+Replicat reported 12 total transactions; DDL errors, retried, discarded and ignored errors were all zero. The DDL count comprises temporary-table CREATE/ADD COLUMN/DROP and FOX_PK addition. Direct transactions ratio 33.33% is not an error rate. The final counters did not include a fresh 19:59 lag reading; my last recorded four-second Extract lag was around 17:35.
 
 ### Evidence and remaining limits
 
-Evidence: final stats/report Pasted text(20261109-020037).txt; fourth DDL Pasted text(20261109-014505).txt; schema logging image(20261109-013104).png; privilege/log-group checks image(20261109-012953).png; FOX update and cleanup images image(20261109-015732).png and image(20261109-015828).png; preceding pasted SQL/DDL screenshots. Filename dates are UTC-oriented; displayed deployment evidence is November 8 CST.
+Evidence: final Extract/Replicat statistics and reports, the fourth DDL output, schema logging and privilege/log-group query results, FOX update and cleanup screenshots, and earlier SQL/DDL screenshots, from my terminal output and screenshots retained privately as lab evidence. Some evidence filenames use the November 9 UTC date; deployment times shown here are November 8 CST.
 
 Still open: independent CHILDREN_NAMES live DML test; exact historical FOX DATE comparison; Admin Client logging-inspection ORA-01031; separate FOX-schema logging inventory; private source credential rotation confirmation; intermittent management authorisation and HTTP/TLS/hostname follow-ups. Full schema reconciliation, restart/failover and a delivery SLA were not demonstrated. These limits do not negate the successful tested TEST1/FOX delivery or four completed DDL operations.
