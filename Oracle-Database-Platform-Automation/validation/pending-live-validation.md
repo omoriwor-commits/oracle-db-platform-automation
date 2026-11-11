@@ -1,6 +1,6 @@
 # Live validation and evidence gates
 
-Updated 2026-10-21. Repository fixes and fake-tool tests do not establish live database recovery, patch compliance or scheduled execution. Existing completed lab experience remains recorded separately.
+Updated 2026-11-06. Repository fixes and fake-tool tests do not establish live database recovery, patch compliance or scheduled execution. Existing completed lab experience remains recorded separately.
 
 | Work | Required evidence | Tracker |
 |---|---|---|
@@ -9,7 +9,7 @@ Updated 2026-10-21. Repository fixes and fake-tool tests do not establish live d
 | RAC availability | Retained actual SCAN new-connection and instance-stop/restoration transcript; distinguish planned stop from unplanned loss | Issue 24 |
 | Backup recovery | SHOW ALL, level-0 and restore validation; isolated restore/recovery result, independent copy and freshness monitoring | Issue 24 |
 | Data Guard collection | Primary and standby runs; deliberate failed connection; role, lag and datum-time interpretation; broker result | Issue 24 |
-| Scheduling | Node-2 tests/manual report and both-node cron/freshness observations | [Draft PR 21](https://github.com/omoriwor-commits/oracle-db-platform-automation/pull/21) |
+| Scheduling | Both-node 27-test/manual results and first completed cron runs recorded in the [health automation runbook](../../Oracle-DBA/runbooks/rac-health-automation.md); repeated freshness/load observation and warning review remain open | [Draft PR 21](https://github.com/omoriwor-commits/oracle-db-platform-automation/pull/21) |
 
 ## Read-only RAC evidence collection
 
