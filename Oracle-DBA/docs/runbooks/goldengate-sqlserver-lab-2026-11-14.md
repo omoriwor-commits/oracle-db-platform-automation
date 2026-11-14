@@ -8,7 +8,7 @@
 - Next step: Evaluate a supported SQL Server 2022 target; no end-to-end CDC has been verified for this local test.
 - Lesson: Verify the GoldenGate/target compatibility matrix before installing.
 
-Scope: This is a separate local test against SQL Server 2025. My completed Oracle-to-SQL Server 2022 replication through a GoldenGate hub on Azure is documented in: TODO: link
+Scope: This is a separate local test against SQL Server 2025. The Azure GoldenGate hub project is outside the scope of this runbook.
 
 **Baseline date:** 2026-11-14  
 **Status (2026-11-14 checkpoint):** SQL Server 2025 TCP, ODBC authentication, SQL authorization, GoldenGate deployment process environment and DB credential registration verified. **GoldenGate-native connection failed with OGG-05310 because SQL Server 2025 (17.0.1155) is unsupported by installed GoldenGate 23.26.1.0.1.** Replicat not configured or started. SQL Server 2022 is a proposed remediation, not installed.  
