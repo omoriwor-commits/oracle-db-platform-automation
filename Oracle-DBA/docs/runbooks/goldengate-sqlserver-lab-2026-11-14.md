@@ -8,7 +8,7 @@
 - Next step: Evaluate a supported SQL Server 2022 target; no end-to-end CDC has been verified for this local test.
 - Lesson: Verify the GoldenGate/target compatibility matrix before installing.
 
-Scope: This is a separate local test against SQL Server 2025. I completed an Oracle-to-SQL Server 2022 replication project through a GoldenGate hub on Azure and retired that environment after the free-tier period expired. That project is separate from this local test; its supporting documentation has not been linked here.
+Scope: This is a separate local test against SQL Server 2025. I completed an Oracle-to-SQL Server 2022 replication project through a GoldenGate hub on Azure and retired that environment after the free-tier period expired. That project is separate from this local test. Its completion and retirement are recorded here from my project history; public supporting evidence and a project link are not yet available in this repository.
 
 **Baseline date:** 2026-11-14  
 **Status (2026-11-14 checkpoint):** SQL Server 2025 TCP, ODBC authentication, SQL authorization, GoldenGate deployment process environment and DB credential registration verified. **GoldenGate-native connection failed with OGG-05310 because SQL Server 2025 (17.0.1155) is unsupported by installed GoldenGate 23.26.1.0.1.** Replicat not configured or started. SQL Server 2022 is a proposed remediation, not installed.  
@@ -19,7 +19,7 @@ Scope: This is a separate local test against SQL Server 2025. I completed an Ora
 
 - Preserve `/u02/ogg26ai_home`, `/u02/ogg26ai_sm`, and `/u02/ogg26ai_deploy` (existing Oracle GoldenGate environment) without changes.
 - Preserve `/u02/ogg_mssql_home`, `/u02/ogg_mssql_sm`, and `/u02/ogg_mssql_deploy` (SQL Server GoldenGate installation). Do not uninstall or overwrite while evaluating a new target.
-- Do not attempt Replicat against SQL Server 2025 using the currently installed GoldenGate 23.26.1.0.1: GoldenGate-native validation **explicitly rejected version 17.0.1155 with OGG-05310** (see Section 14).
+- Do not attempt Replicat against SQL Server 2025 using the currently installed GoldenGate 23.26.1.0.1: GoldenGate-native validation **explicitly rejected version 17.0.1155 with OGG-05310** (see Section 13).
 - Never save SQL login passwords, SSH private keys, connection-string secrets, or unredacted `authorized_keys` user identifiers in the repository.
 - Maintain dated outputs of version, inventory, network tests, security mapping, configuration, and service status. Avoid recording secrets.
 
@@ -95,9 +95,9 @@ Driver=/u02/ogg_mssql_home/msodbc/lib64/libmsodbcsql.so
 ```
 
 - Vendor template: `mssql_odbcini_template.ini` demonstrates a DSN and `Encrypt=yes`, `TrustServerCertificate=yes`.
-- `/u02/ogg_mssql_home/msodbc/odbc.ini` **did not exist at the initial inspection**. It was subsequently created with `GG_TARGET_DSN` pointing at `192.168.4.32:1433` / `GG_TARGET` (see Section 14).
-- Initial interactive shell lacked `ODBCINI` / `ODBCSYSINI` / `OGG_HOME`; the variables were subsequently exported for the `isql` test. The running `MSSQL_DEP` services were independently checked through `/proc/<PID>/environ` and have the correct ODBC variables (see Section 14).
-- Authenticated `isql` connection as `ggadmin`, `DB_NAME()` and `@@VERSION`, identity and `db_owner` checks **passed** (Section 14).
+- `/u02/ogg_mssql_home/msodbc/odbc.ini` **did not exist at the initial inspection**. It was subsequently created with `GG_TARGET_DSN` pointing at `192.168.4.32:1433` / `GG_TARGET` (see Section 13).
+- Initial interactive shell lacked `ODBCINI` / `ODBCSYSINI` / `OGG_HOME`; the variables were subsequently exported for the `isql` test. The running `MSSQL_DEP` services were independently checked through `/proc/<PID>/environ` and have the correct ODBC variables (see Section 13).
+- Authenticated `isql` connection as `ggadmin`, `DB_NAME()` and `@@VERSION`, identity and `db_owner` checks **passed** (Section 13).
 
 ## 4. SSH tunneling: access and automation
 
@@ -211,7 +211,7 @@ timeout 5 bash -c 'echo > /dev/tcp/192.168.4.32/1433' && echo 'SQL SERVER TCP CO
 
 - Result: `SQL SERVER TCP CONNECTED`.
 
-**Scope of this early TCP proof:** A TCP socket opened to `192.168.4.32:1433`. **Later** authenticated ODBC queries proved authentication and SQL execution (Section 14), but neither test proved Replicat compatibility or CDC.
+**Scope of this early TCP proof:** A TCP socket opened to `192.168.4.32:1433`. **Later** authenticated ODBC queries proved authentication and SQL execution (Section 13), but neither test proved Replicat compatibility or CDC.
 
 ## 6. SQL Server database and security: verified
 
@@ -240,7 +240,7 @@ Changes performed in SSMS during session:
 - `db_owner` role membership granted in `GG_TARGET`.
 - `msdb` user `ggadmin` created (conditional script) and assigned `SQLAgentUserRole` (conditional script).
 
-TODO: confirm whether msdb access and SQLAgentUserRole are required for a SQL Server Replicat target; they are typically needed for a SQL Server capture source.
+**Open privilege validation (not yet verified):** Determine whether `msdb` access and `SQLAgentUserRole` are required for a SQL Server Replicat target; these privileges are typically associated with a SQL Server capture source. The grant above remains part of the recorded lab state; no privilege rollback has been performed.
 
 **Final read-only validation (SSMS result grid):**
 
@@ -280,7 +280,7 @@ GO
 
 - Installed GoldenGate for SQL Server: `23.26.1.0.1`.
 - SQL Server target: **SQL Server 2025**, version 17.x.
-- Prior review of Oracle release notes indicated SQL Server 2025 support was introduced with GoldenGate `23.26.2.0.0`. **More importantly, the installed 23.26.1.0.1 build itself explicitly rejected SQL Server 2025 with OGG-05310** in its native database connection validator (Section 14).
+- Prior review of Oracle release notes indicated SQL Server 2025 support was introduced with GoldenGate `23.26.2.0.0`. **More importantly, the installed 23.26.1.0.1 build itself explicitly rejected SQL Server 2025 with OGG-05310** in its native database connection validator (Section 13).
 - Oracle Software Delivery Cloud listing showed the selected `V1054820-01.zip`, *Oracle GoldenGate 23.26.1.0.1 on Linux x86-64 for SQL Server* (~481.4 MB): **identical to installed build, not an upgrade**.
 - A later, compatible GoldenGate build may require an Oracle support entitlement. **No specific patch identifier is recommended in this runbook without independently verified Oracle patch metadata, platform applicability, prerequisite checks, and licensing/access evidence.**
 - GoldenGate Free 26ai download page offers separate container images for Oracle and for MySQL/PostgreSQL/SQL Server. It is a **different product/deployment model**, not a drop-in replacement for the conventional installed GoldenGate Microservices home. Its interoperability and licensing restrictions must be checked before integrating with the existing standard deployment.
@@ -379,11 +379,11 @@ Get-ScheduledTaskInfo -TaskName 'GoldenGate-MSSQL-SSH-Tunnel' | Select-Object La
 
 **Next planned change:** Preserve the OGG-05310 incident evidence and GoldenGate deployment backups; establish the intended SQL Server 2022 host operating system and resources before deciding on a VM or standalone installation. No SQL Server 2022 installation has been verified. Do not label future steps complete until supported by command output.
 
-## 14. SQL Server 2025 integration attempt — complete checkpoint through OGG-05310 (2026-11-14)
+## 13. SQL Server 2025 integration attempt — complete checkpoint through OGG-05310 (2026-11-14)
 
 **Outcome:** Verified ODBC authentication, authorization, GoldenGate service environment and credential registration; **failed at GoldenGate-native SQL Server version validation**. This is the definitive lab roadblock; do not misattribute it to networking, login, DSN, or firewall.
 
-### 14.1 ODBC configuration created and inspected — PASS
+### 13.1 ODBC configuration created and inspected — PASS
 
 As Linux user `oracle` on `stb23ai`, inspected the bundled driver at `/u02/ogg_mssql_home/msodbc/odbcinst.ini`, then created `/u02/ogg_mssql_home/msodbc/odbc.ini`:
 
@@ -409,7 +409,7 @@ command -v odbcinst || true
 
 Observed `/usr/bin/isql` and `/usr/bin/odbcinst` present; `sqlcmd` was not present in PATH. The driver identified itself during the SQL error message as **Microsoft ODBC Driver 18 for SQL Server**. `TrustServerCertificate=yes` is a lab convenience that bypasses server-certificate validation; replace with a correctly validated TLS configuration for production.
 
-### 14.2 Authentication and SQL authorization through Linux ODBC — PASS
+### 13.2 Authentication and SQL authorization through Linux ODBC — PASS
 
 After prompting for the existing `ggadmin` password without echo, executed `isql -v GG_TARGET_DSN ggadmin "$GG_PASS"`; output: **`Connected!`**. Queries and observed results:
 
@@ -427,7 +427,7 @@ SELECT IS_MEMBER('db_owner') AS IsDbOwner;
 
 The initial `isql` command `clear screen` produced `Could not find stored procedure 'clear'` because it was sent as SQL; this is **not** a driver, network, or authorization failure. End `isql` with `quit`, then `unset GG_PASS`. Avoid printing secrets or capturing shell history with plaintext passwords.
 
-### 14.3 GoldenGate deployment configuration and live process environment — PASS
+### 13.3 GoldenGate deployment configuration and live process environment — PASS
 
 Initial read-only inspection:
 
@@ -459,7 +459,7 @@ for pid in $(pgrep -u oracle -f 'adminsrvr|distsrvr|recvsrvr|pmsrvr'); do echo "
 - SQL Server `MSSQL_DEP` processes: PIDs `234191`, `234193`, `234195`, `234198`; each reported `OGG_HOME=/u02/ogg_mssql_home`, `ODBCSYSINI=/u02/ogg_mssql_home/msodbc`, `ODBCINI=/u02/ogg_mssql_home/msodbc/odbc.ini`.
 - PIDs are evidence from that instant, **not persistent identifiers**. No environment change or restart was needed.
 
-### 14.4 GoldenGate native DB credential registered — PASS (registration only)
+### 13.4 GoldenGate native DB credential registered — PASS (registration only)
 
 In `MSSQL_DEP` Administration Server at Windows-forwarded `http://127.0.0.1:7841/services/v2/content/`, logged in as GoldenGate management user `oggadmin`. The deployment dashboard showed **zero** Extracts, Replicats and transport paths and **no displayed critical events** before the native test.
 
@@ -476,7 +476,7 @@ Used **DB Connections → Add DB Connection**, with:
 
 After Submit, the connection list showed `OracleGoldenGate`, alias `GG_TARGET_ALIAS`, user ID `ggadmin@GG_TARGET_DSN`. **Saving a credential proves registration, not that GoldenGate successfully validated the target.**
 
-### 14.5 GoldenGate-native connection validation — FAIL / definitive roadblock
+### 13.5 GoldenGate-native connection validation — FAIL / definitive roadblock
 
 Clicked the first **Connect to Database** action in the DB Connections row. The UI raised:
 
