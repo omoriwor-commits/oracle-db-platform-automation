@@ -270,7 +270,7 @@ GO
 - SQL Server target: **SQL Server 2025**, version 17.x.
 - Prior review of Oracle release notes indicated SQL Server 2025 support was introduced with GoldenGate `23.26.2.0.0`. **More importantly, the installed 23.26.1.0.1 build itself explicitly rejected SQL Server 2025 with OGG-05310** in its native database connection validator (Section 14).
 - Oracle Software Delivery Cloud screenshot selected `V1054820-01.zip`, *Oracle GoldenGate 23.26.1.0.1 on Linux x86-64 for SQL Server* (~481.4 MB): **identical to installed build, not an upgrade**.
-- Oracle support bundle patch mentioned in discussion (`40225919`, claimed `23.26.4.0.2`) was not accessible without paid support entitlement. **Patch ID and applicability should be rechecked against My Oracle Support before use.**
+- A later, compatible GoldenGate build may require an Oracle support entitlement. **No specific patch identifier is recommended in this runbook without independently verified Oracle patch metadata, platform applicability, prerequisite checks, and licensing/access evidence.**
 - GoldenGate Free 26ai download page offers separate container images for Oracle and for MySQL/PostgreSQL/SQL Server. It is a **different product/deployment model**, not a drop-in replacement for the conventional installed GoldenGate Microservices home. Its interoperability and licensing restrictions must be checked before integrating with the existing standard deployment.
 - **Proposed no-cost remediation:** preserve SQL Server 2025 and configure a separate **SQL Server 2022 Developer Edition** target (VM or suitably isolated supported host). The OGG-05310 error lists SQL Server 2022 among the supported versions; this does not guarantee an end-to-end replication test will pass. No SQL Server 2022 deployment is evidenced yet. The user is considering a hub machine, but host OS and suitability must be verified before installation.
 
@@ -384,7 +384,7 @@ This appendix records **gaps**, not completed tasks. The earlier sections preser
 | Medium | Exact software archive checksum, stage path and prerequisite checklist | Needed for provenance and reproducible reinstall; installation zip identifier seen was `V1054820-01.zip`. |
 | Medium | Resource baseline and VirtualBox host network topology | Must capture before provisioning SQL Server 2022 VM to avoid contention with RAC / Data Guard VMs. |
 | Medium | Tested SQL Server `GG_TARGET` database backup and scripted logins/permissions without plaintext passwords | Separate persistence/restore control; no successful backup or restore test was shown. |
-| Medium | Evidence artifacts in Git with redaction review and commit identifier | The Markdown file is local; there is no verified repository commit or off-host copy. |
+| Partially complete | Runbook tracked in GitHub | Original runbook merged in PR [#33](https://github.com/omoriwor-commits/oracle-db-platform-automation/pull/33), squash commit `d7de51e5930b459ba2e1043de3698e53d26e971a`. **Evidence artifacts are still missing**; GitHub contains the Markdown runbook, not restorable deployment configuration or an evidence bundle. |
 
 **Operational rule:** Before upgrading, uninstalling, or creating the new target VM, separately back up configuration/state and validate recovery. Do not present this Markdown document as a substitute for those backups.
 
@@ -518,3 +518,59 @@ Action: Contact Oracle GoldenGate Support.
 6. Collect evidence for target DDL, trail delivery, checkpoint table creation, Replicat state and insert/update/delete reconciliation before claiming end-to-end CDC. **None of these were verified by the SQL Server 2025 attempt.**
 
 **Security/control note:** A successful `isql` session shows standalone database authentication, but a stored GoldenGate credential does not prove the GoldenGate connection succeeded. Separate the two in audit and incident records.
+
+## 15. Post-incident review and mandatory preflight gates (2026-11-14)
+
+### 15.1 Incident and sequencing failure
+
+**Incident:** `OGG-05310` (with `OGG-12025` shown by the Administration Server UI). Installed GoldenGate for SQL Server `23.26.1.0.1` rejected SQL Server 2025 `17.0.1155` during GoldenGate-native database connection validation. The error listed SQL Server 2014/2016/2017/2019/2022 as supported target versions by that validator.
+
+**Primary process defect:** the GoldenGate/target version compatibility check was performed **after** deployment, SSH tunneling, network access, driver/DSN configuration, and login provisioning instead of as **Gate 0** before installation. These configuration steps were technically successful but did not remove the release-version blocker.
+
+**Technical root cause:** target version not accepted by installed GoldenGate build. **Contributing cause:** prerequisite and fail-fast verification were not sequenced by cost and impact.
+
+**Scope/impact:** time spent on a target that could not pass the installed build's version gate; no Replicat created or started; no end-to-end CDC claimed. Existing Oracle deployment `DEP2` was not intentionally modified.
+
+### 15.2 Mandatory gates before SQL Server 2022 or any future target deployment
+
+| Gate | Required evidence and decision | Stop condition |
+|---|---|---|
+| **0 — Compatibility (before install)** | Capture source/target database engine versions, GoldenGate **executable** versions on capture and apply sides, OS/platform, GoldenGate support/certification documentation and date consulted; check trail compatibility, edition/licensing, patches, and known limitations. | No authoritative support evidence or documented incompatibility: **NO-GO**. |
+| **1 — Feasibility** | Confirm installation media provenance/checksum, licensed edition and patch entitlement, host OS support, disk/memory/CPU, network topology and required ports. | Required download, support entitlement, guest OS, or host capacity unavailable: **NO-GO**. |
+| **2 — Minimal fail-fast native test** | Configure only the minimum network access, ODBC driver/DSN and secure database credential required to run **GoldenGate-native DB Connect**; capture exact result before completing ancillary setup. | Native test fails (including `OGG-05310`): **STOP**, diagnose and remediate before continuing. |
+| **3 — Recoverable baseline** | Export/redact install and deployment inputs; back up relevant Service Manager/deployment directories and credential-store materials into **restricted**, off-host storage; record checksums and a verified restore procedure. | No validated configuration/state backup before change: **NO-GO** for change. |
+| **4 — Controlled implementation** | Version-controlled parameter files, trail definitions, minimal privileges, monitoring and restart procedures; capture tests as performed. | Missing test evidence or undocumented change: **HOLD**. |
+| **5 — Acceptance** | GoldenGate Replicat status, initial load prerequisites, source/target DDL alignment, insert/update/delete replay, checkpoints, lag/error analysis, reconciliation, security review, and rollback check. | CDC correctness or recovery tests incomplete: do not mark complete. |
+| **6 — Documentation release** | Cross-check runbook statements against current deployment evidence and PR state, link verified sources, classify pending work, check for secrets, and record the actual merge commit after merging. | Conflicting or stale statements: correct before merging. |
+
+**Important sequencing note:** the native connection test cannot precede **all** configuration: it needs a reachable database, ODBC settings and a database credential. The improvement is to **check the published compatibility matrix before installing** and run the native test as soon as those *minimum* prerequisites exist, before building the full integration.
+
+### 15.3 Evidence capture controls
+
+Capture outputs *during* the change rather than reconstructing from chat screenshots. Use per-activity dated evidence directories; redaction is mandatory before pushing to this **public** repository.
+
+```bash
+# Example on the appropriate lab host; do not record credentials.
+RUN_DATE="$(date -u +%Y-%m-%dT%H%M%SZ)"
+EVDIR="$HOME/ogg-evidence/$RUN_DATE"
+umask 077
+mkdir -p "$EVDIR"
+/u02/ogg_mssql_home/bin/adminclient -v 2>&1 | tee "$EVDIR/adminclient-version.txt"
+date -u --iso-8601=seconds | tee "$EVDIR/capture-time.txt"
+sha256sum "$EVDIR/adminclient-version.txt" > "$EVDIR/SHA256SUMS"
+```
+
+- For nonsecret command transcripts, consider `script -q -f "$EVDIR/session.typescript"`, **but never use it while entering passwords, authentication tokens, or other secret values**. A transcript may capture sensitive content even if terminal echo is disabled.
+- Export screenshots immediately with an activity identifier and UTC timestamp; redact usernames, credentials, personal workstation identifiers and other unnecessary details before publication.
+- Store **private** configuration archives, credential stores, private keys, SQL backups and unredacted logs **outside GitHub** in access-controlled, encrypted storage. A public Markdown runbook is not a backup.
+- Add to each evidence index: timestamp, source host, action performed, command or UI path, expected outcome, observed outcome, PASS/FAIL/BLOCKED status, artifact location and SHA-256 digest. Do not invent missing evidence.
+- After each implementation checkpoint, update this runbook and associated evidence index **in the same PR/commit**, then verify its status before merge.
+
+### 15.4 Outstanding recovery tasks — not completed by this documentation update
+
+- Offline backup and recovery validation for `/u02/ogg_mssql_sm` and `/u02/ogg_mssql_deploy` (plus separate Oracle deployment state if any Oracle-side change is planned).
+- Redacted installer response file, GoldenGate deployment configuration export, SSH tunnel scheduled-task XML and startup script evidence.
+- GoldenGate-native SQL Server 2022 validation once the selected host and edition are established.
+- DDL, trail, checkpoint table, Replicat and end-to-end CDC evidence.
+
+**Change-control status:** Original runbook merged in [PR #33](https://github.com/omoriwor-commits/oracle-db-platform-automation/pull/33) on 2026-11-14. This amendment documents corrective actions and resolves the stale Section 13 claim; it **does not** assert that backup or CDC tasks are complete. The GitHub merge commit for this amendment must be captured from the actual merge result rather than predicted in advance.
