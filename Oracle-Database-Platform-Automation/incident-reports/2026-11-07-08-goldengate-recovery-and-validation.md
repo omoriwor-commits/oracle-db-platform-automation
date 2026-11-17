@@ -2,6 +2,7 @@
 
 **Project:** Oracle Database Platform Automation — local Oracle 19c → 26ai GoldenGate replication
 **Status:** Local lab replication operational for tested TEST1 and FOX DML; four mapped DDL operations applied with zero DDL errors. Updated through November 8, 19:59 CST. Current follow-ups and evidence limits are in Appendix D.
+**Later incident:** EXT19C and REP26AI stopped again on November 14 and could not be restarted; see the [November 14–17 postmortem](2026-11-14-17-goldengate-ext19c-rep26ai-startup-failure.md).
 
 ## 1. Summary
 

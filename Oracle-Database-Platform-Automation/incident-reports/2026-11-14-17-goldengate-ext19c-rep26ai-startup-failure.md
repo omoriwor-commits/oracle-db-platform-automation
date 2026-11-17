@@ -6,12 +6,15 @@
 **Environment:** VirtualBox Oracle Linux lab. Recovery practices described below are intended to inform production runbooks, not evidence of production-grade lossless recovery.
 **Software:** Oracle GoldenGate 26ai Microservices (release 23.26.1). "26ai" is the product name; `23.26.1` is the version reported by the binaries.
 **Prepared:** November 17, 2026
+**Related:** [November 7–8 recovery and validation incident report](2026-11-07-08-goldengate-recovery-and-validation.md) · [19c to 26ai recovery runbook](../../GoldenGate/runbooks/goldengate-19c-to-26ai-recovery-runbook.md)
+
+Public edition: host names and addresses are replaced with placeholders (`source-host`, `target-host`, `<SOURCE_IP>`, `<TARGET_IP>`); raw evidence is retained separately.
 
 ---
 
 ## 1. Executive summary
 
-Following a host interruption / recovery period, two previously working Oracle GoldenGate Microservices groups, Integrated Extract `EXT19C` and Integrated Replicat `REP26AI`, would not start in deployment `DEP1` on `pry23ai`. Administration Server accepted START requests but immediately logged `WARN | invalid checkpoint for group ()`, and no Extract/Replicat worker process was launched. The warning also appeared during successful starts of replacement groups, so it cannot alone establish checkpoint corruption.
+Following a host interruption / recovery period, two previously working Oracle GoldenGate Microservices groups, Integrated Extract `EXT19C` and Integrated Replicat `REP26AI`, would not start in deployment `DEP1` on `target-host`. Administration Server accepted START requests but immediately logged `WARN | invalid checkpoint for group ()`, and no Extract/Replicat worker process was launched. The warning also appeared during successful starts of replacement groups, so it cannot alone establish checkpoint corruption.
 
 The original groups and trail were preserved. New Integrated Extract `EXTTEST` and Replicat `REPTEST` established that new processes could start and that test-table DDL/DML replicated. A separate Integrated Replicat `REPCUT` was then introduced for four application tables with a new forward-only cutover checkpoint. All four mapped application tables passed INSERT, UPDATE and DELETE verification; `REPCUT` also passed a graceful stop/restart preserving checkpoint position. Final health output showed `EXTTEST`, `REPCUT` and `REPTEST` running, while the originals remained stopped.
 
@@ -21,8 +24,8 @@ The original groups and trail were preserved. New Integrated Extract `EXTTEST` a
 
 | Role | Host / component | Notes |
 |---|---|---|
-| Oracle source | `pry.com` (192.168.4.111) | Oracle 19c, CDB `PRODB`, PDB `PRODBHR`, source schemas `FOX`, `HOLA` |
-| GoldenGate hub and Oracle target | `pry23ai` (192.168.4.113) | Oracle Linux 9.8 VM; GoldenGate 26ai (23.26.1) Microservices binaries `/u02/ogg26ai_home`; deployment `/u02/ogg26ai_deploy` |
+| Oracle source | `source-host` (`<SOURCE_IP>`) | Oracle 19c, CDB `PRODB`, PDB `PRODBHR`, source schemas `FOX`, `HOLA` |
+| GoldenGate hub and Oracle target | `target-host` (`<TARGET_IP>`) | Oracle Linux 9.8 VM; GoldenGate 26ai (23.26.1) Microservices binaries `/u02/ogg26ai_home`; deployment `/u02/ogg26ai_deploy` |
 | GoldenGate Admin Client | `/u02/ogg26ai_home/bin/adminclient` | Administration Server `http://127.0.0.1:7821`, `DEP1`; Service Manager 7820 |
 | Oracle target | CDB `CDB23AI`, PDB `PDB23AI` | Alias `TGT26AI`; Integrated Replicat apply |
 | Original path | `EXT19C` → `./dirdat/lt` → `REP26AI` | Both preserved, stopped |
@@ -196,3 +199,4 @@ It was possible to modify `REPTEST`'s MAP statements and restart it; a new proce
 |---|---|
 | 2026-11-17 | Initial postmortem |
 | 2026-11-17 | Review edits: clarified GoldenGate 26ai / 23.26.1 naming; moved checkpoint checksums and `REPTEST` DELETE verification to the action register; added archived-log/LogMiner gap check and `EXT19C` registration/archive-retention risk |
+| 2026-11-17 | Moved to `incident-reports/` alongside the November 7–8 report; replaced host names and IP addresses with placeholders |

@@ -1,5 +1,7 @@
 # GoldenGate 19c to 26ai recovery runbook
 
+> **Status update (November 17, 2026):** The EXT19C → REP26AI route described here stopped on November 14 and could not be restarted. It is preserved but no longer the active path; replication now runs on EXTTEST → REPCUT. See the [November 14–17 postmortem](../../Oracle-Database-Platform-Automation/incident-reports/2026-11-14-17-goldengate-ext19c-rep26ai-startup-failure.md). This runbook remains the record of the November 7–8 recovery.
+
 Evidence updated: November 8, 2026, through 19:59 CST. Live INSERT/UPDATE/DELETE verified on HOLA.TEST1 and HOLA.FOX; four mapped DDL operations applied with zero DDL errors. HOLA schema key logging and FOX target key selection confirmed. Both listener settings persisted. Section 14 is the current validation record; sections 1–13 preserve the recovery chronology.
 
 This record preserves correct commands and explanations from my terminal output and logs. Mistyped commands, stray prompts, repeated failures, and passwords are excluded. Historical errors are summarized where they explain a corrective action. Commands are grouped by execution context, not intended as one script to rerun blindly.

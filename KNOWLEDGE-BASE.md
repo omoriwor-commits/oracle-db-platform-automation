@@ -5,6 +5,9 @@ This is a cross-repository index of technical references, procedures, incidents,
 ## GoldenGate
 - [Six deployment methodologies](GoldenGate/six-deployment-methodologies.md): process placement patterns, selection criteria and the selected migration topology.
 - [Oracle 19c to 26ai migration](https://github.com/omoriwor-commits/enterprise-data-platform-labs/tree/main/migrations/oracle-19c-to-26ai-goldengate): remote Integrated Extract and target apply.
+- [November 7–8 19c → 26ai recovery](Oracle-Database-Platform-Automation/incident-reports/2026-11-07-08-goldengate-recovery-and-validation.md): retained-redo recovery, timezone lag fix and DML/DDL validation.
+- [November 14–17 EXT19C/REP26AI startup failure](Oracle-Database-Platform-Automation/incident-reports/2026-11-14-17-goldengate-ext19c-rep26ai-startup-failure.md): replacement path EXTTEST → REPCUT; root cause undetermined; SCN-gap reconciliation open.
+- [OGG-05310 SQL Server 2025 compatibility](Oracle-DBA/docs/incidents/ogg-05310-sqlserver-2025-2026-11-14.md) and [SQL Server lab runbook](Oracle-DBA/docs/runbooks/goldengate-sqlserver-lab-2026-11-14.md).
 - [Microservices troubleshooting](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/blob/main/docs/goldengate/troubleshooting/goldengate-26ai-oggca-daemon-registration-troubleshooting.md).
 - [Heterogeneous CDC checkpoints](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab/tree/main/docs/checkpoints): dated build checkpoints for Migration 3 (VPN/BGP, Extract, trails, Replicat preparation). End-to-end apply was completed afterward; target-side logs will be published after the rerun.
 
