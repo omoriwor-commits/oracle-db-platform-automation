@@ -76,21 +76,14 @@ systemctl is-active fapolicyd
 ```
 Direct denial observed 07:06–07:08, format failure 07:14–07:15; distinct root causes. Corrected wrapper started; PID 175247 terminated at 07:23:53 and restarted at 07:24:03 with PID 176948; HTTP 200. Never disable security controls to bypass failure.
 
-## Evidence references (private archive filenames; not included in public package)
+## Supporting diagnostics (private retention)
 
-- Pasted text(20261120-130930).txt — SSH AVC and journal.
-- Pasted text(20261120-131627).txt — wrapper Exec format error and blank first line.
-- image(20261120-132546).png — tunnel recovery.
-- image(20261120-133712).png — distribution Running.
-- image(20261120-133954).png — remote trail listing.
-- image(20261120-135247).png — target table definition.
-- Conversation Logdump COUNT output — 29 records including 15 DML and four DDL; five unrelated tables, no intended table in inspected sequence.
+The original Linux journal entries, SELinux AVC diagnostics, GoldenGate process outputs, remote trail checks and SQL Server metadata observations are retained as private diagnostic material. They are not included in the public repository because some records contain environment-specific identifiers. Relevant findings and timestamps are summarized above. The November 20 Logdump inspection counted 29 records, including 15 DML and four DDL records, involving unrelated tables; the inspected sequence did not show the intended target table. Sanitized extracts can be published after review.
 
-This is a curated incident register, not a complete screenshot-by-screenshot audit. Earlier historical archive is retained separately.
 
 ## November 21 follow-up: GoldenGate application, Extract recovery and verification
 
-These follow-ups occurred **after** the November 20 transport-only checkpoint. The main runbook at `runbooks/oracle19c-to-sqlserver2022-cdc.md`, section 13, is the authoritative step-by-step continuation.
+These follow-ups occurred **after** the November 20 transport-only checkpoint. The authoritative current procedure is the [public Revision 3.0 GoldenGate runbook](../../GoldenGate/runbooks/oracle19c-dataguard-to-oracle26ai-and-sqlserver2022.md), especially sections 4.9–4.11 (Replicat creation, checkpoint alignment, start and transaction tests).
 
 | Finding | My observation | What I did | Result / limit |
 |---|---|---|---|
