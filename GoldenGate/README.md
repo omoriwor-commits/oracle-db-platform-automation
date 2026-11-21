@@ -7,6 +7,14 @@ My GoldenGate reference work and field guide.
 
 My completed GoldenGate migrations are in [enterprise-data-platform-labs](https://github.com/omoriwor-commits/enterprise-data-platform-labs) (Migrations 1 and 2) and [enterprise-multicloud-database-platform-lab](https://github.com/omoriwor-commits/enterprise-multicloud-database-platform-lab) (Migration 3).
 
+## Verified on-premises one-to-many replication — November 21, 2026
+
+- [Oracle 19c (Data Guard) → Oracle 26ai and SQL Server 2022: one-to-many GoldenGate 26ai implementation runbook](runbooks/oracle19c-dataguard-to-oracle26ai-and-sqlserver2022.md) — host-by-host configuration, integrated capture on the Oracle 19c **primary**, dual GoldenGate targets, SSH trail transport, checkpoint initialization, and verified INSERT/UPDATE/DELETE.
+- [Implementation incident register, November 18–21](../Oracle-Database-Platform-Automation/incident-reports/2026-11-18-21-goldengate-mssql-implementation.md) — troubleshooting and recovery decisions.
+- [Validation evidence index](../Oracle-Database-Platform-Automation/validation/2026-11-21-one-to-many-cdc-evidence.md) — observations from source/target screenshots; image files withheld pending redaction.
+
+The physical standby `PRDST` is maintained by **Data Guard**, not GoldenGate. This currently operating local lab is separate from my earlier retired OCI-to-Azure migration.
+
 ## Runbooks
 
 - [GoldenGate 26ai Oracle-to-Oracle setup runbook (draft)](runbooks/goldengate26ai-oracle-to-oracle-setup-runbook.md) — single-hub Microservices deployment, Integrated Extract and Replicat, Data Pump initial load at SCN, validation and teardown.
