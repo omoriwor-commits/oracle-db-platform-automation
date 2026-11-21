@@ -15,7 +15,7 @@ Oracle renamed its database product **23ai to 26ai**; the surviving hostnames `p
 | `pry` | Oracle 19c PRIMARY `PRODB/PRODBHR`; `HOLA.TEST1` source | `192.168.4.111` |
 | `stb` / `PRDST` | Data Guard PHYSICAL STANDBY; READ ONLY WITH APPLY | `192.168.4.112` |
 | `pry23ai` | Oracle 26ai `PDB23AI`; GoldenGate `DEP1`, integrated `EXTTEST` + `REPCUT` | `192.168.4.113`; Service Manager 7820, Admin UI 7821, Distribution 7822 |
-| `stb23ai` | GoldenGate SQL Server `MSSQL_DEP`; Receiver and `REPMSSQL`; no SQL Server engine | `192.168.4.114`; Service Manager 7840, Admin UI 7841, Distribution 7842, Receiver 7843, Metrics 7844 |
+| `stb23ai` | GoldenGate SQL Server `MSSQL_DEP`; Receiver and `REPMSSQL`; no SQL Server engine | `192.168.4.114`; Service Manager 7840, Admin UI 7841, Distribution 7842, Receiver 7843, Performance Metrics Service 7844 |
 | Windows desktop | SQL Server 2022 Developer; `GG_TARGET.dbo.TEST1` | `192.168.4.20:1433` |
 
 ```mermaid
@@ -37,14 +37,14 @@ flowchart TD
 | Test | Oracle 19c primary | Oracle 26ai `PDB23AI` | SQL Server `GG_TARGET` | Data Guard standby |
 |---|---|---|---|---|
 | INSERT `900010` | `OGG_MSSQL_INSERT_TEST` committed | Row observed | Row observed | Not independently checked at INSERT |
-| UPDATE `900010` | `OGG_MSSQL_UPDATE_TEST` committed | Updated value observed | Updated value observed | Earlier value observed before final DELETE |
+| UPDATE `900010` | `OGG_MSSQL_UPDATE_TEST` committed | Updated value observed | Updated value observed | Not checked |
 | DELETE `900010` | `1 row deleted`, COMMIT | `no rows selected` | 0 rows | `no rows selected` |
 
 Earlier, after recovery of the stalled `EXTTEST`, a fresh INSERT had reached **the receiving `ms` trail only**: `REPMSSQL` was not started, and that earlier event was **not demonstrated as applied to SQL Server**. SQL Server's four baseline `TEST1` rows were seeded separately. The later row `900010` checks above are the successful end-to-end test.
 
 Data Guard Broker `my_dg`: `MaxAvailability`, members `prodb` primary and `prdst` physical standby, configuration `SUCCESS`, Fast-Start Failover **Disabled**. This is a successfully observed lab validation, not a switchover, automatic failover or measured zero-loss proof.
 
-**Evidence:** Screenshots of the actual SQL*Plus, SSMS, and Data Guard Broker outputs were provided in the November 21 project conversation. The original images require privacy review/redaction before public upload; the repository currently includes text records, not those image binaries. The evidence manifest below does not imply images are already committed.
+**Evidence:** The November 21 source, target and Data Guard checks are documented in the [validation evidence index](../../Oracle-Database-Platform-Automation/validation/2026-11-21-one-to-many-cdc-evidence.md). Original screenshots are retained privately and will be published only after redaction. The repository currently contains the text evidence index, not the screenshot files.
 
 ## 4. Implementation procedure (existing installed software)
 
@@ -303,7 +303,7 @@ getenforce
 sudo systemctl enable GoldenGateMSSQLTunnel.service
 systemctl is-enabled GoldenGateMSSQLTunnel.service
 ```
-Repeat HTTP probe from section 5. Controlled process recovery test (only before CDC or in approved outage window):
+Repeat the Receiver HTTP probe from section 4.4. Controlled process recovery test (only before CDC or in approved outage window):
 ```bash
 sudo systemctl kill --kill-who=main --signal=SIGTERM GoldenGateMSSQLTunnel.service
 sleep 15
@@ -588,7 +588,7 @@ STATS REPLICAT REPMSSQL, TOTAL
 INFO REPLICAT REPMSSQL, DETAIL
 ```
 
-Record source commit time, target observation time, checkpoint advancement, errors, and exact rows. Avoid calling 0 seconds checkpoint lag proof of 0 RPO or complete replication. The screenshots prove end-state application of these DML changes; they are not a formal latency benchmark.
+Record source commit time, target observation time, checkpoint advancement, errors, and exact rows. Avoid calling 0 seconds checkpoint lag proof of 0 RPO or complete replication. My observed source and target results confirm these DML changes reached both GoldenGate targets; they are not a formal latency benchmark.
 
 **Supplemental logging status:** On November 21 `DBLOGIN USERIDALIAS SRC19CROOT` succeeded against `PRODB/CDB$ROOT`, but `INFO TRANDATA PRODBHR.HOLA.TEST1` returned `OGG-00664` and Oracle `ORA-01031: insufficient privileges`. That is an authorization failure for the inspection, not proof that logging is absent. Table/schema supplemental logging therefore remains **unverified by this command**. Use an appropriately authorized DBA read-only check to establish the actual configuration; do not grant broad privileges or alter source logging solely for documentation.
 
@@ -655,7 +655,7 @@ SQL Server `GG_TARGET` was observed in `FULL` recovery; without scheduled transa
 
 The implementation passed through an earlier test-table design named `HOLA.TEST1_CDC_LAB` / `dbo.TEST1_CDC_LAB`. On November 20 its table definition and zero-row state were checked; an Include filter `MSSQL_CDC_FILTER` was proposed, but there is no evidence that it was effectively applied. Logdump showed unrelated FOX/HOLA records and DDL, so distribution filtering is **unverified**. This branch was retired and its source table dropped; the actual verified November 21 flow maps `PRODBHR.HOLA.TEST1` to `dbo.TEST1`.
 
-For the complete historic target table DDL, then-pending Replicat plan, original original six-page wizard notes and all raw commands preserved before this rewrite, see [the November 18–21 incident register](../../Oracle-Database-Platform-Automation/incident-reports/2026-11-18-21-goldengate-mssql-implementation.md). The incident register preserves observed failures and fixes. For failures, diagnosis and fixes see [incident register](../incident-reports/implementation-incidents.md).
+For the recorded November 18–21 errors, failed deployment attempts, diagnostic findings, and corrective actions, see the [public implementation incident register](../../Oracle-Database-Platform-Automation/incident-reports/2026-11-18-21-goldengate-mssql-implementation.md). The register preserves verified failures and fixes; the historical section here summarizes the superseded `TEST1_CDC_LAB` branch. For failures, diagnosis and fixes see [incident register](../../Oracle-Database-Platform-Automation/incident-reports/2026-11-18-21-goldengate-mssql-implementation.md).
 
 The November 20 acceptance plan was never the proof of SQL Server apply: the first demonstrated `REPMSSQL` application came only after the later baseline comparison, `ms000000001` / RBA `10080` initial alignment and Nov 21 committed `900010` operations.
 
