@@ -24,7 +24,17 @@ One Oracle Database Platform Automation project spans three linked repositories:
 
 Migration evidence stays in its implementation repository and is linked here rather than duplicated. Completed lab results and remaining evidence-publication work are identified in each repository.
 
-## Architecture v1
+## Current on-premises GoldenGate milestone — November 21, 2026
+
+I now run Oracle 19c primary `PRODB/PRODBHR` with Data Guard physical standby `PRDST`, plus GoldenGate remote integrated Extract `EXTTEST` feeding Oracle 26ai `PDB23AI` through `REPCUT` and SQL Server 2022 `GG_TARGET` through `DISTMSSQL` and `REPMSSQL`. I verified source INSERT/UPDATE/DELETE on `HOLA.TEST1` at both GoldenGate targets and the final DELETE at the physical standby. GoldenGate captures **from the Oracle 19c primary**, not from the standby.
+
+- [Public v3.0 implementation runbook](../GoldenGate/runbooks/oracle19c-dataguard-to-oracle26ai-and-sqlserver2022.md)
+- [Incident report](incident-reports/2026-11-18-21-goldengate-mssql-implementation.md)
+- [Validation evidence index](validation/2026-11-21-one-to-many-cdc-evidence.md)
+
+My earlier OCI-to-Azure migration was a separate completed lab; those cloud subscriptions expired. The old cloud architecture below is historical, not my current running topology.
+
+## Architecture v1 (historical cloud lab)
 
 ```text
 OCI: Oracle Database 26ai (source)
@@ -46,7 +56,7 @@ Parallel core track: AWS database modernization (Terraform + schema conversion +
 Advanced extension: AI automation
 ```
 
-**Status:** The pipeline shown was completed in my earlier lab. Within this project it will be rebuilt with Terraform, Ansible and CI/CD.
+**Status:** The cloud pipeline shown above is historical and retired following free-tier expiration. The current operational on-premises replication milestone is documented above; future Terraform, Ansible and CI/CD automation remains planned.
 
 ## DevOps syllabus mapped to project deliverables
 
@@ -129,7 +139,7 @@ Status legend: **Done** = verified evidence; **In progress** = actively implemen
 - **One project identity:** Oracle Database Platform Automation.
 - **One master roadmap:** [ROADMAP.md](ROADMAP.md).
 - **One learning framework:** DevOps syllabus applied to Oracle database platform engineering.
-- **One primary data pipeline:** OCI Oracle → Azure GoldenGate → Azure SQL Server (one-way CDC).
+- **One current operational replication topology:** on-prem Oracle 19c primary → GoldenGate 26ai → Oracle 26ai and SQL Server 2022, with separate Data Guard redo apply to PRDST. The earlier OCI/Azure migration is historical.
 - Oracle DBA, GoldenGate, RAC, Data Guard, RMAN, DevOps, cloud, and automation are **workstreams/phases within this project**, not competing project identities.
 - Existing repositories and technical reference folders can continue to hold reusable notes or prior lab artifacts; link verified evidence rather than claiming it has moved.
 - Never commit credentials, SSH private keys, connection secrets, production data, or unredacted screenshots.
