@@ -4,6 +4,24 @@ Oracle database lab portfolio focused on **migration and GoldenGate replication*
 
 These are independent hands-on lab projects. The current goal is to bring the strongest existing Oracle DBA work into one repeatable, version-controlled **Oracle Database Platform Automation** platform using DevOps practices.
 
+## Current focus — November 2026
+
+**One-to-many heterogeneous replication, running on-prem.** A Data Guard–protected Oracle 19c primary (`PRODB/PRODBHR`) now feeds two GoldenGate 26ai targets from a single integrated Extract, `EXTTEST`:
+
+```text
+Oracle 19c PRIMARY (PRODBHR) ──redo──> Data Guard physical standby (PRDST)
+        │
+        └─ EXTTEST (remote integrated capture) ─> xt trail
+              ├─ REPCUT (integrated) ─────────────────────> Oracle 26ai PDB23AI
+              └─ DISTMSSQL ─SSH tunnel─> ms trail ─ REPMSSQL ─> SQL Server 2022 GG_TARGET
+```
+
+On November 21 I committed INSERT, UPDATE and DELETE on `HOLA.TEST1` and confirmed each change in Oracle 26ai and SQL Server. The final DELETE also showed on the standby, and Data Guard Broker reported SUCCESS.
+
+[Runbook](GoldenGate/runbooks/oracle19c-dataguard-to-oracle26ai-and-sqlserver2022.md) · [Incident register](Oracle-Database-Platform-Automation/incident-reports/2026-11-18-21-goldengate-mssql-implementation.md) · [Validation record](Oracle-Database-Platform-Automation/validation/2026-11-21-one-to-many-cdc-evidence.md)
+
+**Next:** controlled Replicat and tunnel failure tests, a full reboot test, and an SCN-consistent reload of the SQL Server target.
+
 ## Migration path
 
 I took one Oracle workload through three GoldenGate 26ai migrations:
@@ -41,7 +59,7 @@ Oracle 19c / PRODBHR (Oracle Linux 7.9)
 
 **Engineering decision:** Run GoldenGate off-box on the newer Oracle Linux environment rather than install GoldenGate 26ai on the older source OS. November 7–8, 2026 local recovery validation confirmed TEST1 and FOX INSERT/UPDATE/DELETE delivery, plus four mapped DDL operations (test CREATE/ALTER/DROP and FOX primary-key addition), with zero reported DDL errors and zero DML discards. See the [recovery runbook](GoldenGate/runbooks/goldengate-19c-to-26ai-recovery-runbook.md) and [incident report](Oracle-Database-Platform-Automation/incident-reports/2026-11-07-08-goldengate-recovery-and-validation.md). These are sanitised evidence summaries; raw transcripts are retained separately. CHILDREN_NAMES live DML, full reconciliation and several privilege/security follow-ups remain open.
 
-**Current status (November 17, 2026):** EXT19C and REP26AI stopped on November 14 and would not restart (Administration Server prelaunch failure; root cause undetermined). Both are preserved. Replication now runs on replacement Integrated Extract EXTTEST → Integrated Replicat REPCUT, with INSERT/UPDATE/DELETE verified on four application tables (including CHILDREN_NAMES) and a graceful restart test. The SCN gap between the old and new capture is still being reconciled, so zero data loss is not claimed. See the [November 14–17 incident report](Oracle-Database-Platform-Automation/incident-reports/2026-11-14-17-goldengate-ext19c-rep26ai-startup-failure.md).
+**Status:** The original `EXT19C`/`REP26AI` pair stopped on November 14 and would not restart. I preserved both and moved replication to `EXTTEST` → `REPCUT`, which now also feeds SQL Server (see Current focus above). The SCN gap between the old and new capture has not been reconciled, so I don't claim zero data loss for that cutover. [November 14–17 incident report](Oracle-Database-Platform-Automation/incident-reports/2026-11-14-17-goldengate-ext19c-rep26ai-startup-failure.md)
 
 ### Migration 2 — Oracle 26ai On-Premises to OCI Migration & GoldenGate Replication
 
