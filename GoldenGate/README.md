@@ -17,6 +17,7 @@ The physical standby `PRDST` is maintained by **Data Guard**, not GoldenGate. Th
 
 ## Runbooks
 
+- [How one committed change reaches two targets](concepts/one-change-two-targets.md) — a walkthrough of capture, trails, distribution and apply in my one-to-many pipeline, with troubleshooting steps.
 - [GoldenGate 26ai Oracle-to-Oracle setup runbook (draft)](runbooks/goldengate26ai-oracle-to-oracle-setup-runbook.md) — single-hub Microservices deployment, Integrated Extract and Replicat, Data Pump initial load at SCN, validation and teardown.
 
 ## Verified local recovery and validation

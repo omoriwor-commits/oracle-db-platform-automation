@@ -1,16 +1,12 @@
-# How GoldenGate moves one change to two databases
+# How one committed change reaches two targets in my GoldenGate pipeline
 
-## Start with one change
-
-Imagine a school keeps a class list. A student moves from Class 10 to Class 20. The school saves that change. Two offices need their copies updated.
-
-In my lab, **Oracle 19c** is the original list. **Oracle 26ai** and **SQL Server 2022** are the two copies. **GoldenGate** carries the saved change to each copy.
-
-The example below is for learning. Employee 101 moving from department 10 to 20 is an example transaction.
+My Data Guard–protected Oracle 19c primary is the source. Oracle 26ai and SQL Server 2022 are the GoldenGate targets. I follow one real committed change through the pipeline, then show how I verified the full test.
 
 ## 1. Oracle saves a record of the change
 
-An application updates employee 101 from department 10 to 20 and issues a **commit**. A commit makes the transaction permanent.
+On November 21, 2026, I inserted ID `900010` with `NAME = 'OGG_MSSQL_INSERT_TEST'` into `HOLA.TEST1` in `PRODBHR` and committed. I then updated `NAME` to `OGG_MSSQL_UPDATE_TEST` and committed, followed by a separate DELETE and commit. Both `PDB23AI.HOLA.TEST1` and `GG_TARGET.dbo.TEST1` showed the inserted value, then the updated value, then no row for ID `900010`. I also confirmed the final DELETE on the Data Guard standby, where ID `900010` was absent.
+
+The [November 21 validation record](../../Oracle-Database-Platform-Automation/validation/2026-11-21-one-to-many-cdc-evidence.md) records the checks at the source, both targets, and the standby.
 
 Oracle generates **redo**, the record it uses to recover database changes. **LGWR**, the log writer, writes redo to the **online redo logs**. In ARCHIVELOG mode, Oracle can copy a completed online redo log to an **archived redo log** after a log switch. The change can already be in online redo before archiving happens.
 
@@ -55,7 +51,7 @@ Start at the top and follow the arrows. At **xt**, the change takes two routes. 
 
 1. **REPCUT** reads xt from its saved position.
 2. Its **mapping** tells it which target table should receive the change.
-3. The Oracle 26ai **inbound server** applies the change. Once the target transaction commits, a query can see department 20.
+3. The Oracle 26ai **inbound server** applies the change. In the November 21 test, I queried `PDB23AI.HOLA.TEST1` and observed `OGG_MSSQL_INSERT_TEST` after the INSERT, `OGG_MSSQL_UPDATE_TEST` after the UPDATE, and `no rows selected` after the DELETE for ID `900010`.
 4. This route reads xt directly in DEP1, so it needs no Distribution Path or Receiver to deliver the trail.
 
 ### SQL Server route, step by step
@@ -63,7 +59,7 @@ Start at the top and follow the arrows. At **xt**, the change takes two routes. 
 1. **DISTMSSQL**, a Distribution Path in DEP1, reads xt and sends records across the network.
 2. The **Receiver Service** in MSSQL_DEP writes the incoming records to its local **ms** trail.
 3. **REPMSSQL**, the SQL Server Replicat, reads ms and uses its mapping to find the target table.
-4. It applies the update to **GG_TARGET**. Once the SQL Server transaction commits, a query can see department 20.
+4. It applies the changes to `GG_TARGET.dbo.TEST1`. I observed `OGG_MSSQL_INSERT_TEST` after the INSERT, `OGG_MSSQL_UPDATE_TEST` after the UPDATE, and zero rows after the DELETE for ID `900010`.
 
 ## 4. Why the word Extract gets confusing
 
@@ -82,6 +78,7 @@ In Classic Architecture, **Data Pump Extract sends** and **Collector receives an
 
 | What stops? | Where do new changes wait? | What can still work? |
 |---|---|---|
+| EXTTEST | In Oracle's online and archived redo logs on the 19c source | REPCUT and DISTMSSQL can keep processing what is already in xt. EXTTEST can only catch up if the archived logs it still needs are available, so RMAN archive log deletion must not remove them first. |
 | REPCUT | In xt | EXTTEST can keep writing. The SQL Server branch can keep going if its components are healthy. |
 | DISTMSSQL | In xt before shipment | REPCUT can keep applying to Oracle. REPMSSQL can still apply changes already in ms. |
 | REPMSSQL | In ms | The Receiver can keep writing while SQL Server apply is stopped. |
@@ -103,7 +100,7 @@ A trail **sequence** identifies the numbered file. The **RBA** is the byte offse
 - Who writes xt? **EXTTEST.**
 - Why can REPCUT share xt with EXTTEST? **It reads the same files in DEP1 and keeps its own checkpoint.**
 - Who writes ms? **The Receiver Service in MSSQL_DEP.**
-- What proves employee 101's change reached SQL Server? **The expected row in GG_TARGET after the change commits there.**
+- What verified SQL Server apply for ID `900010`? **Queries on `GG_TARGET.dbo.TEST1` showed the inserted value, the updated value, and zero rows after the DELETE.**
 
 ## How I would explain my lab in an interview
 
