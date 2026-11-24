@@ -1,7 +1,9 @@
 # Daily and Weekly Database Health Checks (Oracle 26ai RAC, Multitenant)
 
-**Last updated:** 2026-10-19
+**Last updated:** 2026-10-20
 **Status:** Partly automated. Cluster, network, database, ASM, FRA and alert-log checks run in my RAC health-check script (`scripts/oracle-rac/rac_health_check.py` in the enterprise-multicloud-database-platform-lab repo), validated on my 26ai RAC lab. The SQL checks below that the script doesn't cover yet are marked **Planned**.
+
+**Scheduled collection:** [RAC health automation](rac-health-automation.md) adds a private logging/retention runner and staggered cron activation instructions for both nodes. All eight runner tests and one manual snapshot passed the collection/exit-handling checks on racnode1 on 2026-10-20, with four health warnings retained. Racnode2 and cron validation remain pending; no schedule has been activated by this change.
 
 Many health-check lists online date from before 12c. They check one instance, read `background_dump_dest` and sum `DBA_FREE_SPACE`. On a RAC container database those checks miss most of the picture.
 
