@@ -15,6 +15,10 @@ My completed GoldenGate migrations are in [enterprise-data-platform-labs](https:
 
 The physical standby `PRDST` is maintained by **Data Guard**, not GoldenGate. This currently operating local lab is separate from my earlier retired OCI-to-Azure migration.
 
+## Concepts
+
+- [How one committed change reaches two targets](concepts/one-change-two-targets.md) — a walkthrough of capture, trails, distribution and apply in my one-to-many pipeline, with troubleshooting steps.
+
 ## Runbooks
 
 - [GoldenGate 26ai Oracle-to-Oracle setup runbook (draft)](runbooks/goldengate26ai-oracle-to-oracle-setup-runbook.md) — single-hub Microservices deployment, Integrated Extract and Replicat, Data Pump initial load at SCN, validation and teardown.
