@@ -102,8 +102,4 @@ A trail **sequence** identifies the numbered file. The **RBA** is the byte offse
 - Who writes ms? **The Receiver Service in MSSQL_DEP.**
 - What verified SQL Server apply for ID `900010`? **Queries on `GG_TARGET.dbo.TEST1` showed the inserted value, the updated value, and zero rows after the DELETE.**
 
-## How I would explain my lab in an interview
-
-“In my lab, Oracle 19c generates redo. Oracle's logmining server supplies the changes to my Integrated Extract, EXTTEST, which writes the xt trail on the GoldenGate hub. My Oracle Replicat, REPCUT, reads xt directly. For SQL Server, DISTMSSQL ships the records to a second deployment, where the Receiver writes ms and REPMSSQL applies the changes. When troubleshooting, I find the last stage where I can verify progress and check the next handoff.”
-
 For setup and validation steps, see the [implementation runbook](../runbooks/oracle19c-dataguard-to-oracle26ai-and-sqlserver2022.md).
