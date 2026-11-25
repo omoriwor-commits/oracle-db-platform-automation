@@ -1,12 +1,14 @@
-# Oracle 19c (Data Guard) → Oracle 26ai and SQL Server 2022: One-to-Many Heterogeneous Replication with GoldenGate 26ai
+# Oracle 19c (Data Guard) → Oracle 26ai and SQL Server 2022: One-to-Many Replication with GoldenGate 26ai
 
-Revision 3.0 — 2026-11-21 | Local-lab implementation, recovery and test evidence
+Revision 3.1 — 2026-11-25 | Local-lab implementation, recovery and test evidence
 
 ## 1. Summary
 
 I built a one-to-many GoldenGate replication path from an Oracle 19c **primary** database, CDB `PRODB`, PDB `PRODBHR`, to an Oracle 26ai PDB and a SQL Server 2022 database. GoldenGate's integrated Extract `EXTTEST` runs remotely in `DEP1`, writes `xt`, and feeds the Oracle integrated Replicat `REPCUT` plus the SQL Server path `DISTMSSQL` → `ms` → nonintegrated `REPMSSQL`. Independently, Oracle Data Guard transports and applies redo to physical standby `PRDST`; **GoldenGate captures from the primary, never from that standby**. On November 21 I committed INSERT, UPDATE and DELETE on `PRODBHR.HOLA.TEST1` and verified the same DML at both GoldenGate targets. The final DELETE was also confirmed on the Data Guard standby, and Broker reported SUCCESS. My earlier OCI-to-Azure SQL Server migration is a different project; those free-tier cloud subscriptions expired and this runbook documents only the current on-premises lab.
 
 ## 2. Architecture
+
+GoldenGate replication is one-way on both routes. Oracle 19c to Oracle 26ai is homogeneous, and Oracle 19c to SQL Server 2022 is heterogeneous.
 
 Oracle renamed its database product **23ai to 26ai**; the surviving hostnames `pry23ai` and `stb23ai` are legacy names and do not imply an older installed database release. `stb23ai` is a Linux GoldenGate host; `stb` / `PRDST` is the separate Oracle 19c standby.
 
@@ -634,6 +636,34 @@ Separately, while Oracle `REPCUT` wildcard DDL mapping was being tested, an earl
 
 For `OGG-01112` / `OGG-01668` and `OGG-25116`, preserve reports and checkpoints, verify the integrated capture and OS PID, then use a controlled recovery. The earlier targeted SIGTERM to PID `5836` was justified by that specific hung process; never terminate a different process by copying the historical PID. The Oracle `REPCUT` `ORA-00942` was a distinct DDL mapping/history problem, not a SQL Server CDC failure. I did not prove historical gap closure by changing the mappings.
 
+### November 25, 2026 — Extract recovery and two-target verification
+
+#### Recover EXTTEST from its saved checkpoint
+
+1. On `MSSQL_DEP`, I checked `INFO REPLICAT REPMSSQL, DETAIL` and the Replicat report. After its ODBC connection failure, `REPMSSQL` reconnected to `GG_TARGET` and reopened `ms000000002` at RBA `1838`. The committed `TEST1` row with ID `900011` was still missing on SQL Server.
+2. On `DEP1`, I compared two samples of `INFO EXTRACT EXTTEST, DETAIL`. The Extract reported `RUNNING`, but its redo checkpoint stayed at SCN `18340902` and its `xt` write position stayed at sequence `5`, RBA `3332`. `SEND EXTRACT EXTTEST, STATUS` timed out with `OGG-25116`. A stop request also timed out with `OGG-02973`. On the Oracle primary, `DBA_CAPTURE` showed `OGG$CAP_EXTTEST` as `ENABLED` with the client `DETACHED`. The archived redo file for thread `1`, sequence `234`, was present in the primary FRA.
+3. I checked the Extract PID on `pry23ai` even though the web UI showed `STOPPED`. PID `12509` was still present at first. Later checks confirmed the old process had exited and Admin Client reported `STOPPED`. During the first restart attempt, the source login returned `ORA-12543` (destination host unreachable). After `DBLOGIN USERIDALIAS SRC19CROOT` succeeded against `PRODB/CDB$ROOT`, I ran `START EXTRACT EXTTEST` on the existing group and retained its saved checkpoint.
+4. The new process showed `RUNNING`, its redo SCN advanced, and lag dropped to seconds. I verified `900011 / GG_RESTART_TEST` in `GG_TARGET.dbo.TEST1`. This confirmed recovery for that test row. The trigger for the original Extract stall remains unconfirmed.
+
+#### Add CHILDREN_NAMES to ongoing SQL Server replication
+
+1. I manually seeded the five existing source rows in `GG_TARGET.dbo.CHILDREN_NAMES`. I added nullable `DOB DATE` and `PLACE_OF_BIRTH VARCHAR2(100 CHAR)` in Oracle 19c `PRODBHR`. I verified both columns appeared in `PDB23AI` through `REPCUT`. In SSMS I added `DOB date NULL` and `PLACE_OF_BIRTH nvarchar(100) NULL` and verified that the five target rows were present with both new columns empty.
+2. On the source, `INFO TRANDATA PRODBHR.HOLA.CHILDREN_NAMES` returned `ORA-01031` through the Extract alias. A separate query in `PRODBHR` found `HOLA` with `SUPPLEMENTAL_LOG_DATA_PK = IMPLICIT` in `DBA_CAPTURE_PREPARED_SCHEMAS`. That is schema-level evidence. The table-level Admin Client inspection remained restricted.
+3. I used the change to `TEST1.NAME = 'GG_CHILDREN_CUTOVER'` for ID `900011` as a marker and verified it in SSMS. The SQL Server Replicat configuration for the new table adds `MAP PRODBHR.HOLA.CHILDREN_NAMES, TARGET dbo.CHILDREN_NAMES;` alongside the existing `TEST1` mapping. The lab used the existing Replicat group and checkpoint.
+4. I updated the five rows in Oracle 19c. The source session showed the new values while both targets still showed `NULL`. After I issued `COMMIT` in `PRODBHR`, I confirmed that both `PDB23AI.HOLA.CHILDREN_NAMES` and `GG_TARGET.dbo.CHILDREN_NAMES` reflected the update. This verified GoldenGate DML on both routes after the SQL Server baseline and schema were prepared.
+
+#### Trace the TEST1 cutover marker with Logdump
+
+I opened the `xt` trail under `/u02/ogg26ai_deploy/var/lib/data/dirdat/` on `pry23ai` and the `ms` trail under `/u02/ogg_mssql_deploy/var/lib/data/` on `stb23ai`. At the Logdump prompt I used `GHDR ON`, `DETAIL ON`, `FILTER INCLUDE FILENAME PRODBHR.HOLA.TEST1`, `DETAIL DATA`, and `NEXT` to read the metadata and row records.
+
+| Check | Observed evidence |
+|---|---|
+| Original insert | ID `900011` appeared at trail RBAs `2202` and `2371` in the two dumps. Both listed Oracle redo RBA `0x0000f4.00005340.0010`. |
+| SQL Server trail delivery | In `ms000000002` at RBA `4135`, `GGSUnifiedUpdate` showed `NAME` changing from `GG_RESTART_TEST` to `GG_CHILDREN_CUTOVER`. |
+| SQL Server apply | SSMS returned `GG_CHILDREN_CUTOVER` for ID `900011`. |
+
+The Oracle redo RBA identifies the position in the source redo. Each GoldenGate trail RBA is a byte offset in its own file. The target query verified apply for the marker. The [pipeline walkthrough](../concepts/one-change-two-targets.md) explains the two routes.
+
 ## 6. Scope and limitations
 
 This is my functioning local on-premises lab, separate from my retired OCI-to-Azure project.
@@ -664,3 +694,4 @@ The November 20 acceptance plan was never the proof of SQL Server apply: the fir
 - **2.0 — Nov 20:** Captured infrastructure, access controls, persistent tunnel and distribution path; Replicat apply remained pending.
 - **2.1 — Nov 21:** Added successful SQL Server Replicat startup and real DML verification, plus Data Guard and incident follow-up.
 - **3.0 — Nov 21:** Reorganized into summary, architecture, verified results, implementation, operations and appendices. Corrected the earlier INSERT chronology (ms trail only), clarified Data Guard's independent primary-to-standby redo route, updated cloud scope, documented the `ORA-01031` supplemental-logging inspection failure, recorded boot-order/SQL log/SSH forwarding risks, and indexed screenshot evidence pending redaction.
+- **3.1 — Nov 25:** Added checkpoint-based Extract recovery, the five-row baseline and two-target update, and Logdump evidence for the SQL Server cutover marker.
