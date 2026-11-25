@@ -94,6 +94,26 @@ A **checkpoint** is a saved progress marker. A reader can resume using its check
 
 A trail **sequence** identifies the numbered file. The **RBA** is the byte offset inside that file. Compare sequence first because the offset can reset when a new file starts. **Lag** is a measure of delay at a stage. Check it alongside checkpoint movement and actual workload.
 
+## 7. November 25, 2026: Recovery, a two-target update, and trail inspection
+
+### Recovering capture from its checkpoint
+
+I investigated after SQL Server Replicat **REPMSSQL** abended with an ODBC connection error. It reconnected after a restart, but the new `TEST1` row was still missing from SQL Server. Upstream, **EXTTEST** reported `RUNNING`, yet its redo read checkpoint stayed at SCN `18340902` and its trail write position stayed at sequence 5, RBA 3332. A status request timed out. After the old Extract process exited and the source database connection was reachable again, I restarted the existing Extract from its saved checkpoint. The read SCN advanced, lag dropped to seconds, and ID `900011` appeared in SQL Server. I verified recovery for that test row. The original cause of the Extract stall remains unconfirmed.
+
+### Applying a schema change and updating both targets
+
+I added nullable `DOB` and `PLACE_OF_BIRTH` columns on `PRODBHR.HOLA.CHILDREN_NAMES`. **REPCUT** replicated the ALTER TABLE to Oracle 26ai. For SQL Server, I manually loaded the five existing rows, added the two columns in SSMS, and enabled the table mapping in **REPMSSQL** for ongoing changes. I then updated the five rows on Oracle 19c. The source session could see the new values before commit. After I issued `COMMIT` on the source, I verified that both targets showed the updated values.
+
+### Tracing the cutover marker with Logdump
+
+I used the separate `TEST1` row with ID `900011` to trace a change without displaying personal data. In Logdump, I opened the trail, filtered on `PRODBHR.HOLA.TEST1`, and used `DETAIL DATA` and `NEXT` to inspect row images.
+
+| Evidence | What I verified |
+|---|---|
+| Original insert in two trail dumps | The insert for ID `900011` appeared at trail RBAs `2202` and `2371`. Both showed Oracle redo RBA `0x0000f4.00005340.0010`. The redo address identified the source change while the trail RBAs identified each file's location. |
+| Cutover update in the SQL Server trail | At RBA `4135` in `ms000000002`, `GGSUnifiedUpdate` showed `NAME` changing from `GG_RESTART_TEST` to `GG_CHILDREN_CUTOVER` for the same ID. |
+| SQL Server apply | SSMS returned `GG_CHILDREN_CUTOVER` for ID `900011`. Logdump showed the delivered trail record, and the target query verified the applied value. |
+
 ## Quick review
 
 - Who writes Oracle online redo? **LGWR.**
