@@ -642,15 +642,17 @@ For `OGG-01112` / `OGG-01668` and `OGG-25116`, preserve reports and checkpoints,
 
 1. On `MSSQL_DEP`, I checked `INFO REPLICAT REPMSSQL, DETAIL` and the Replicat report. After its ODBC connection failure, `REPMSSQL` reconnected to `GG_TARGET` and reopened `ms000000002` at RBA `1838`. The committed `TEST1` row with ID `900011` was still missing on SQL Server.
 2. On `DEP1`, I compared two samples of `INFO EXTRACT EXTTEST, DETAIL`. The Extract reported `RUNNING`, but its redo checkpoint stayed at SCN `18340902` and its `xt` write position stayed at sequence `5`, RBA `3332`. `SEND EXTRACT EXTTEST, STATUS` timed out with `OGG-25116`. A stop request also timed out with `OGG-02973`. On the Oracle primary, `DBA_CAPTURE` showed `OGG$CAP_EXTTEST` as `ENABLED` with the client `DETACHED`. The archived redo file for thread `1`, sequence `234`, was present in the primary FRA.
-3. I checked the Extract PID on `pry23ai` even though the web UI showed `STOPPED`. PID `12509` was still present at first. Later checks confirmed the old process had exited and Admin Client reported `STOPPED`. During the first restart attempt, the source login returned `ORA-12543` (destination host unreachable). After `DBLOGIN USERIDALIAS SRC19CROOT` succeeded against `PRODB/CDB$ROOT`, I ran `START EXTRACT EXTTEST` on the existing group and retained its saved checkpoint.
-4. The new process showed `RUNNING`, its redo SCN advanced, and lag dropped to seconds. I verified `900011 / GG_RESTART_TEST` in `GG_TARGET.dbo.TEST1`. This confirmed recovery for that test row. The trigger for the original Extract stall remains unconfirmed.
+3. After the timed-out stop request, the web UI showed `STOPPED`, but I checked the Extract PID on `pry23ai` anyway. PID `12509` was still present at first. Later checks confirmed the old process had exited and Admin Client reported `STOPPED`. During the first restart attempt, the source login returned `ORA-12543` (destination host unreachable). After `DBLOGIN USERIDALIAS SRC19CROOT` succeeded against `PRODB/CDB$ROOT`, I ran `START EXTRACT EXTTEST` on the existing group and retained its saved checkpoint.
+4. The new process showed `RUNNING`, its redo SCN advanced, and lag dropped to seconds. I verified `900011 / GG_RESTART_TEST` in `GG_TARGET.dbo.TEST1`. This confirmed recovery for that test row. The trigger for the original Extract stall remains unconfirmed. A suspected contributor is intermittent loss of the bridged VirtualBox network on the lab hosts, consistent with the `ORA-12543` (destination host unreachable) during the restart. This is not confirmed.
 
 #### Add CHILDREN_NAMES to ongoing SQL Server replication
 
 1. I manually seeded the five existing source rows in `GG_TARGET.dbo.CHILDREN_NAMES`. I added nullable `DOB DATE` and `PLACE_OF_BIRTH VARCHAR2(100 CHAR)` in Oracle 19c `PRODBHR`. I verified both columns appeared in `PDB23AI` through `REPCUT`. In SSMS I added `DOB date NULL` and `PLACE_OF_BIRTH nvarchar(100) NULL` and verified that the five target rows were present with both new columns empty.
 2. On the source, `INFO TRANDATA PRODBHR.HOLA.CHILDREN_NAMES` returned `ORA-01031` through the Extract alias. A separate query in `PRODBHR` found `HOLA` with `SUPPLEMENTAL_LOG_DATA_PK = IMPLICIT` in `DBA_CAPTURE_PREPARED_SCHEMAS`. That is schema-level evidence. The table-level Admin Client inspection remained restricted.
-3. I used the change to `TEST1.NAME = 'GG_CHILDREN_CUTOVER'` for ID `900011` as a marker and verified it in SSMS. The SQL Server Replicat configuration for the new table adds `MAP PRODBHR.HOLA.CHILDREN_NAMES, TARGET dbo.CHILDREN_NAMES;` alongside the existing `TEST1` mapping. The lab used the existing Replicat group and checkpoint.
+3. I used the change to `TEST1.NAME = 'GG_CHILDREN_CUTOVER'` for ID `900011` as a marker and verified it in SSMS. I verified the later `CHILDREN_NAMES` update in SQL Server. The mapping prepared for `REPMSSQL` was `MAP PRODBHR.HOLA.CHILDREN_NAMES, TARGET dbo.CHILDREN_NAMES;` alongside the existing `TEST1` mapping. The available output does not show the stop, parameter edit, or restart.
 4. I updated the five rows in Oracle 19c. The source session showed the new values while both targets still showed `NULL`. After I issued `COMMIT` in `PRODBHR`, I confirmed that both `PDB23AI.HOLA.CHILDREN_NAMES` and `GG_TARGET.dbo.CHILDREN_NAMES` reflected the update. This verified GoldenGate DML on both routes after the SQL Server baseline and schema were prepared.
+
+Limitation: the five target rows were seeded manually, not through an SCN-consistent initial load. The marker change and the later five-row update confirm ongoing replication only, not a consistent instantiation.
 
 #### Trace the TEST1 cutover marker with Logdump
 
@@ -658,7 +660,7 @@ I opened the `xt` trail under `/u02/ogg26ai_deploy/var/lib/data/dirdat/` on `pry
 
 | Check | Observed evidence |
 |---|---|
-| Original insert | ID `900011` appeared at trail RBAs `2202` and `2371` in the two dumps. Both listed Oracle redo RBA `0x0000f4.00005340.0010`. |
+| Original insert | ID `900011` appeared in the `xt` trail on `pry23ai` at RBA `2202` and in the `ms` trail on `stb23ai` at RBA `2371`. Both listed Oracle redo RBA `0x0000f4.00005340.0010`. |
 | SQL Server trail delivery | In `ms000000002` at RBA `4135`, `GGSUnifiedUpdate` showed `NAME` changing from `GG_RESTART_TEST` to `GG_CHILDREN_CUTOVER`. |
 | SQL Server apply | SSMS returned `GG_CHILDREN_CUTOVER` for ID `900011`. |
 
