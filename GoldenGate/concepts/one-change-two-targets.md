@@ -2,12 +2,12 @@
 
 My Data Guard–protected Oracle 19c primary is the source. Oracle 26ai and SQL Server 2022 are the GoldenGate targets. I follow one real committed change through the pipeline, then show how I verified the full test.
 
-My GoldenGate topology is **one-to-many and unidirectional**. Changes flow from one Oracle 19c primary to two target databases. Each route goes from source to target only.
+My GoldenGate setup is **one-to-many (broadcast) and one-way (unidirectional)**. One Oracle 19c primary sends its changes to two target databases, and nothing flows back to the source.
 
-| GoldenGate route | Database platforms |
+| Route | Type |
 |---|---|
-| Oracle 19c → Oracle 26ai | **Homogeneous.** Both databases use the Oracle engine, across different versions. |
-| Oracle 19c → SQL Server 2022 | **Heterogeneous.** The source and target use different database engines. |
+| Oracle 19c → Oracle 26ai | **Homogeneous**: Oracle to Oracle, just different versions. |
+| Oracle 19c → SQL Server 2022 | **Heterogeneous**: two different database products. |
 
 ## 1. Oracle saves a record of the change
 
