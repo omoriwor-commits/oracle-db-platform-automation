@@ -2,6 +2,13 @@
 
 My Data Guard–protected Oracle 19c primary is the source. Oracle 26ai and SQL Server 2022 are the GoldenGate targets. I follow one real committed change through the pipeline, then show how I verified the full test.
 
+My GoldenGate setup is **one-to-many (broadcast) and one-way (unidirectional)**. One Oracle 19c primary sends its changes to two target databases, and nothing flows back to the source.
+
+| Route | Type |
+|---|---|
+| Oracle 19c → Oracle 26ai | **Homogeneous**: Oracle to Oracle, just different versions. |
+| Oracle 19c → SQL Server 2022 | **Heterogeneous**: two different database products. |
+
 ## 1. Oracle saves a record of the change
 
 On November 21, 2026, I inserted ID `900010` with `NAME = 'OGG_MSSQL_INSERT_TEST'` into `HOLA.TEST1` in `PRODBHR` and committed. I then updated `NAME` to `OGG_MSSQL_UPDATE_TEST` and committed, followed by a separate DELETE and commit. Both `PDB23AI.HOLA.TEST1` and `GG_TARGET.dbo.TEST1` showed the inserted value, then the updated value, then no row for ID `900010`. I also confirmed the final DELETE on the Data Guard standby, where ID `900010` was absent.
@@ -93,6 +100,26 @@ A **checkpoint** is a saved progress marker. A reader can resume using its check
 4. **Proof:** Query the expected row on the target after a known source change. A running process or growing trail shows progress at that stage. The expected target row confirms the specific change arrived and was applied.
 
 A trail **sequence** identifies the numbered file. The **RBA** is the byte offset inside that file. Compare sequence first because the offset can reset when a new file starts. **Lag** is a measure of delay at a stage. Check it alongside checkpoint movement and actual workload.
+
+## 7. November 25, 2026: Recovery, a two-target update, and trail inspection
+
+### Recovering capture from its checkpoint
+
+I investigated after SQL Server Replicat **REPMSSQL** abended with an ODBC connection error. It reconnected after a restart, but the new `TEST1` row was still missing from SQL Server. Upstream, **EXTTEST** reported `RUNNING`, yet its redo read checkpoint stayed at SCN `18340902` and its trail write position stayed at sequence 5, RBA 3332. A status request timed out. After the old Extract process exited and the source database connection was reachable again, I restarted the existing Extract from its saved checkpoint. The read SCN advanced, lag dropped to seconds, and ID `900011` appeared in SQL Server. I verified recovery for that test row. The original cause of the Extract stall remains unconfirmed.
+
+### Applying a schema change and updating both targets
+
+I added nullable `DOB` and `PLACE_OF_BIRTH` columns on `PRODBHR.HOLA.CHILDREN_NAMES`. **REPCUT** replicated the ALTER TABLE to Oracle 26ai. For SQL Server, I manually loaded the five existing rows, added the two columns in SSMS, and enabled the table mapping in **REPMSSQL** for ongoing changes. I then updated the five rows on Oracle 19c. The source session could see the new values before commit. After I issued `COMMIT` on the source, I verified that both targets showed the updated values.
+
+### Tracing the cutover marker with Logdump
+
+I used the separate `TEST1` row with ID `900011` to trace a change without displaying personal data. In Logdump, I opened the trail, filtered on `PRODBHR.HOLA.TEST1`, and used `DETAIL DATA` and `NEXT` to inspect row images.
+
+| Evidence | What I verified |
+|---|---|
+| Original insert in two trail dumps | The insert for ID `900011` appeared at trail RBAs `2202` and `2371`. Both showed Oracle redo RBA `0x0000f4.00005340.0010`. The redo address identified the source change while the trail RBAs identified each file's location. |
+| Cutover update in the SQL Server trail | At RBA `4135` in `ms000000002`, `GGSUnifiedUpdate` showed `NAME` changing from `GG_RESTART_TEST` to `GG_CHILDREN_CUTOVER` for the same ID. |
+| SQL Server apply | SSMS returned `GG_CHILDREN_CUTOVER` for ID `900011`. Logdump showed the delivered trail record, and the target query verified the applied value. |
 
 ## Quick review
 
