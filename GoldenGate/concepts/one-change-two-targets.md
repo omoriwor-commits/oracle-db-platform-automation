@@ -2,6 +2,13 @@
 
 My Data Guard–protected Oracle 19c primary is the source. Oracle 26ai and SQL Server 2022 are the GoldenGate targets. I follow one real committed change through the pipeline, then show how I verified the full test.
 
+My GoldenGate topology is **one-to-many and unidirectional**. Changes flow from one Oracle 19c primary to two target databases. Each route goes from source to target only.
+
+| GoldenGate route | Database platforms |
+|---|---|
+| Oracle 19c → Oracle 26ai | **Homogeneous.** Both databases use the Oracle engine, across different versions. |
+| Oracle 19c → SQL Server 2022 | **Heterogeneous.** The source and target use different database engines. |
+
 ## 1. Oracle saves a record of the change
 
 On November 21, 2026, I inserted ID `900010` with `NAME = 'OGG_MSSQL_INSERT_TEST'` into `HOLA.TEST1` in `PRODBHR` and committed. I then updated `NAME` to `OGG_MSSQL_UPDATE_TEST` and committed, followed by a separate DELETE and commit. Both `PDB23AI.HOLA.TEST1` and `GG_TARGET.dbo.TEST1` showed the inserted value, then the updated value, then no row for ID `900010`. I also confirmed the final DELETE on the Data Guard standby, where ID `900010` was absent.
